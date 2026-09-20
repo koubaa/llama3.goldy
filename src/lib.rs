@@ -13,7 +13,7 @@ pub mod kernels;
 pub mod model;
 
 pub use checkpoint::{
-    Checkpoint, Config, LayerWeightOffsets, ModelShape, WeightLayout, LLAMA3_CUDA_COMMIT,
+    Checkpoint, Config, LayerWeightOffsets, LayerWeightViews, ModelShape, WeightLayout, LLAMA3_CUDA_COMMIT,
     STORIES15M_SHA256,
 };
 pub use tokenizer::{sample_argmax, Tokenizer};

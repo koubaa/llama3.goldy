@@ -1,15 +1,15 @@
 //! Retained Goldy transformer matching llama3.cuda `forward()`.
 
-use crate::checkpoint::{Checkpoint, Config, LayerWeightOffsets, ModelShape, WeightLayout};
+use crate::checkpoint::{Checkpoint, Config, LayerWeightViews, ModelShape};
 use crate::gpu::create_runtime;
 use crate::kernels::{
-    AttentionKernel, DecodeStep, EmbedKernel, GemvKernel, ResidualAddKernel, RmsnormInplaceKernel,
-    RmsnormKernel, RopeKernel, SwigluKernel,
+    AttentionKernel, DecodeStep, EmbedKernel, GemvKernel, RmsnormInplaceKernel, RmsnormKernel, RopeKernel,
+    SwigluKernel,
 };
 use anyhow::{Context, Result};
 use goldy::{
-    Buffer, BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MatMulDesc, MatMulView,
-    MemoryExchange, ReplayStats, Runtime, Scheme, WithdrawTransaction,
+    BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MemoryExchange, ReplayStats, Runtime, Scheme,
+    Tensor, TensorContext, TensorDType, TensorShape, TensorView, WithdrawTransaction,
 };
 
 struct PreparedKernels {
@@ -20,7 +20,6 @@ struct PreparedKernels {
     rope: RopeKernel,
     attention: AttentionKernel,
     swiglu: SwigluKernel,
-    residual_add: ResidualAddKernel,
 }
 
 impl PreparedKernels {
@@ -34,50 +33,44 @@ impl PreparedKernels {
             rope: RopeKernel::prepare(runtime).context("prepare rope kernel")?,
             attention: AttentionKernel::prepare(runtime).context("prepare attention kernel")?,
             swiglu: SwigluKernel::prepare(runtime).context("prepare swiglu kernel")?,
-            residual_add: ResidualAddKernel::prepare(runtime)
-                .context("prepare residual_add kernel")?,
         })
     }
 }
 
-struct ModelBuffers {
-    weights: Buffer,
-    x: Buffer,
-    xb: Buffer,
-    xb2: Buffer,
-    hb: Buffer,
-    hb2: Buffer,
-    q: Buffer,
-    att: Buffer,
-    key_cache: Buffer,
-    value_cache: Buffer,
-    step: Buffer,
-    logits: Buffer,
+struct ModelTensors {
+    weights: Tensor,
+    x: Tensor,
+    xb: Tensor,
+    xb2: Tensor,
+    hb: Tensor,
+    hb2: Tensor,
+    q: Tensor,
+    att: Tensor,
+    key_cache: Tensor,
+    value_cache: Tensor,
+    step: goldy::Buffer,
+    logits: Tensor,
     #[allow(dead_code)]
     runtime: Runtime,
 }
 
-impl ModelBuffers {
+impl ModelTensors {
     fn allocate(runtime: Runtime, checkpoint: &Checkpoint, shape: &ModelShape) -> Result<Self> {
-        let zeros = |n: usize| vec![0f32; n];
-        let dim = shape.dim as usize;
-        let hidden = shape.hidden_dim as usize;
-        let kv_elems = (shape.n_layers * shape.seq_len * shape.kv_dim) as usize;
-        let att_elems = (shape.n_heads * shape.seq_len) as usize;
+        let n_weights = u32::try_from(checkpoint.weights.len()).context("weight count exceeds u32")?;
+        let kv_elems = shape.n_layers * shape.seq_len * shape.kv_dim;
+        let att_elems = shape.n_heads * shape.seq_len;
         Ok(Self {
-            weights: runtime
-                .acquire_buffer_with_data(&checkpoint.weights, BufferKind::Scattered)
+            weights: Tensor::from_f32(&runtime, TensorShape::vector(n_weights), &checkpoint.weights)
                 .context("upload weights")?,
-            x: runtime.acquire_buffer_with_data(&zeros(dim), BufferKind::Scattered)?,
-            xb: runtime.acquire_buffer_with_data(&zeros(dim), BufferKind::Scattered)?,
-            xb2: runtime.acquire_buffer_with_data(&zeros(dim), BufferKind::Scattered)?,
-            hb: runtime.acquire_buffer_with_data(&zeros(hidden), BufferKind::Scattered)?,
-            hb2: runtime.acquire_buffer_with_data(&zeros(hidden), BufferKind::Scattered)?,
-            q: runtime.acquire_buffer_with_data(&zeros(dim), BufferKind::Scattered)?,
-            att: runtime.acquire_buffer_with_data(&zeros(att_elems), BufferKind::Scattered)?,
-            key_cache: runtime.acquire_buffer_with_data(&zeros(kv_elems), BufferKind::Scattered)?,
-            value_cache: runtime
-                .acquire_buffer_with_data(&zeros(kv_elems), BufferKind::Scattered)?,
+            x: Tensor::zeros(&runtime, TensorShape::vector(shape.dim), TensorDType::F32)?,
+            xb: Tensor::zeros(&runtime, TensorShape::vector(shape.dim), TensorDType::F32)?,
+            xb2: Tensor::zeros(&runtime, TensorShape::vector(shape.dim), TensorDType::F32)?,
+            hb: Tensor::zeros(&runtime, TensorShape::vector(shape.hidden_dim), TensorDType::F32)?,
+            hb2: Tensor::zeros(&runtime, TensorShape::vector(shape.hidden_dim), TensorDType::F32)?,
+            q: Tensor::zeros(&runtime, TensorShape::vector(shape.dim), TensorDType::F32)?,
+            att: Tensor::zeros(&runtime, TensorShape::vector(att_elems), TensorDType::F32)?,
+            key_cache: Tensor::zeros(&runtime, TensorShape::vector(kv_elems), TensorDType::F32)?,
+            value_cache: Tensor::zeros(&runtime, TensorShape::vector(kv_elems), TensorDType::F32)?,
             step: runtime.acquire_buffer_with_data(
                 &[DecodeStep {
                     token: 0,
@@ -85,8 +78,7 @@ impl ModelBuffers {
                 }],
                 BufferKind::Scattered,
             )?,
-            logits: runtime
-                .acquire_buffer_with_data(&zeros(shape.vocab as usize), BufferKind::Scattered)?,
+            logits: Tensor::zeros(&runtime, TensorShape::vector(shape.vocab), TensorDType::F32)?,
             runtime,
         })
     }
@@ -94,8 +86,9 @@ impl ModelBuffers {
 
 pub struct Model {
     pub config: Config,
-    _buffers: ModelBuffers,
+    _tensors: ModelTensors,
     _kernels: PreparedKernels,
+    _tensor_ctx: TensorContext,
     worker: Scheme,
     upload: Scheme,
     deposit: DepositTransaction,
@@ -118,7 +111,8 @@ impl Model {
         let shape = config.shape();
         let layout = checkpoint.layout;
         let kernels = PreparedKernels::prepare(&runtime)?;
-        let buffers = ModelBuffers::allocate(runtime, checkpoint, &shape)?;
+        let buffers = ModelTensors::allocate(runtime.clone(), checkpoint, &shape)?;
+        let mut tensor_ctx = TensorContext::new(&runtime).context("prepare tensor context")?;
 
         let mut worker = Scheme::new(&ctx);
         kernels
@@ -126,42 +120,50 @@ impl Model {
             .record(
                 &mut worker,
                 "embed",
-                &buffers.weights,
+                &layout.embedding(&buffers.weights, &shape)?,
                 &buffers.step,
                 &buffers.x,
                 shape.dim,
             )
-            .over_1d(shape.dim);
+            .over_tensor(&buffers.x.view());
 
         for layer in 0..shape.n_layers as usize {
-            record_layer(&mut worker, &kernels, &buffers, &shape, &layout, layer);
+            let views = layout.layer_views(&buffers.weights, layer, &shape)?;
+            record_layer(
+                &mut worker,
+                &mut tensor_ctx,
+                &kernels,
+                &buffers,
+                &shape,
+                &views,
+                layer,
+            )?;
         }
 
-    kernels
-        .rmsnorm_inplace
-        .record(
-            &mut worker,
-            "rmsnorm_final",
-            &buffers.x,
-            &buffers.weights,
-            shape.dim,
-            u32::try_from(layout.rms_final_weight).unwrap(),
-        )
-        .groups([1, 1, 1]);
+        let rms_final = layout.rms_final(&buffers.weights, &shape)?;
+        kernels
+            .rmsnorm_inplace
+            .record(
+                &mut worker,
+                "rmsnorm_final",
+                &buffers.x,
+                &rms_final,
+                shape.dim,
+                u32::try_from(rms_final.storage_offset()).unwrap(),
+            )
+            .groups([1, 1, 1]);
 
-    record_gemv(
-        &mut worker,
-        "classifier",
-        &buffers.x,
-        &buffers.weights,
-        &buffers.logits,
-        shape.vocab,
-        shape.dim,
-        u32::try_from(layout.wcls).unwrap(),
-    );
+        record_gemv(
+            &mut tensor_ctx,
+            &mut worker,
+            "classifier",
+            buffers.x.view(),
+            layout.classifier(&buffers.weights, &shape)?,
+            buffers.logits.view(),
+        )?;
 
         let memory = MemoryExchange::new(&ctx);
-        let withdraw = memory.bind_withdraw(&mut worker, &buffers.logits)?;
+        let withdraw = memory.bind_withdraw(&mut worker, buffers.logits.buffer())?;
 
         let mut upload = Scheme::new(&ctx);
         let deposit = memory.bind_deposit(
@@ -171,8 +173,9 @@ impl Model {
 
         Ok(Self {
             config,
-            _buffers: buffers,
+            _tensors: buffers,
             _kernels: kernels,
+            _tensor_ctx: tensor_ctx,
             worker,
             upload,
             deposit,
@@ -211,69 +214,64 @@ fn leak(s: String) -> &'static str {
 }
 
 fn record_gemv(
+    tensors: &mut TensorContext,
     worker: &mut Scheme,
     label: &'static str,
-    x: &Buffer,
-    weights: &Buffer,
-    out: &Buffer,
-    rows: u32,
-    inner: u32,
-    weight_offset: u32,
-) {
-    worker
-        .matmul(label, MatMulDesc::gemv(rows, inner))
-        .a(weights, MatMulView::offset(u64::from(weight_offset)))
-        .b(x, MatMulView::packed())
-        .out(out, MatMulView::packed())
-        .record();
+    x: TensorView<'_>,
+    w: TensorView<'_>,
+    out: TensorView<'_>,
+) -> Result<()> {
+    tensors
+        .recorder(worker)
+        .matmul_into(label, w, x, out)
+        .map_err(|e| anyhow::anyhow!("{e}"))
 }
 
 fn record_layer(
     worker: &mut Scheme,
+    tensors: &mut TensorContext,
     kernels: &PreparedKernels,
-    buffers: &ModelBuffers,
+    buffers: &ModelTensors,
     shape: &ModelShape,
-    layout: &WeightLayout,
+    weights: &LayerWeightViews<'_>,
     layer: usize,
-) {
+) -> Result<()> {
     let loff = layer as u32 * shape.seq_len * shape.kv_dim;
-    let weights = layout.layer(layer, shape);
-    record_attention_block(worker, kernels, buffers, shape, &weights, layer, loff);
-    record_ffn_block(worker, kernels, buffers, shape, &weights, layer);
+    record_attention_block(worker, tensors, kernels, buffers, shape, weights, layer, loff)?;
+    record_ffn_block(worker, tensors, kernels, buffers, shape, weights, layer)
 }
 
 fn record_attention_block(
     worker: &mut Scheme,
+    tensors: &mut TensorContext,
     kernels: &PreparedKernels,
-    buffers: &ModelBuffers,
+    buffers: &ModelTensors,
     shape: &ModelShape,
-    weights: &LayerWeightOffsets,
+    weights: &LayerWeightViews<'_>,
     layer: usize,
     loff: u32,
-) {
+) -> Result<()> {
     kernels
         .rmsnorm
         .record(
             worker,
             leak(format!("rmsnorm_att_{layer}")),
             &buffers.x,
-            &buffers.weights,
+            &weights.rms_att,
             &buffers.xb,
             shape.dim,
-            weights.rms_att,
+            u32::try_from(weights.rms_att.storage_offset()).unwrap(),
         )
         .groups([1, 1, 1]);
 
     record_gemv(
+        tensors,
         worker,
         leak(format!("wq_{layer}")),
-        &buffers.xb,
-        &buffers.weights,
-        &buffers.q,
-        shape.dim,
-        shape.dim,
+        buffers.xb.view(),
         weights.wq,
-    );
+        buffers.q.view(),
+    )?;
 
     kernels
         .gemv
@@ -281,12 +279,12 @@ fn record_attention_block(
             worker,
             leak(format!("wk_{layer}")),
             &buffers.xb,
-            &buffers.weights,
+            &weights.wk,
             &buffers.key_cache,
             &buffers.step,
             shape.dim,
             shape.kv_dim,
-            weights.wk,
+            u32::try_from(weights.wk.storage_offset()).unwrap(),
             loff,
             shape.kv_dim,
         )
@@ -298,12 +296,12 @@ fn record_attention_block(
             worker,
             leak(format!("wv_{layer}")),
             &buffers.xb,
-            &buffers.weights,
+            &weights.wv,
             &buffers.value_cache,
             &buffers.step,
             shape.dim,
             shape.kv_dim,
-            weights.wv,
+            u32::try_from(weights.wv.storage_offset()).unwrap(),
             loff,
             shape.kv_dim,
         )
@@ -344,70 +342,65 @@ fn record_attention_block(
         .groups([shape.n_heads, 1, 1]);
 
     record_gemv(
+        tensors,
         worker,
         leak(format!("wo_{layer}")),
-        &buffers.xb,
-        &buffers.weights,
-        &buffers.xb2,
-        shape.dim,
-        shape.dim,
+        buffers.xb.view(),
         weights.wo,
-    );
+        buffers.xb2.view(),
+    )?;
 
-    kernels
-        .residual_add
-        .record(
-            worker,
+    tensors
+        .recorder(worker)
+        .add_into(
             leak(format!("residual_att_{layer}")),
-            &buffers.x,
-            &buffers.xb2,
-            shape.dim,
+            buffers.x.view(),
+            buffers.xb2.view(),
+            buffers.x.view(),
         )
-        .over_1d(shape.dim);
+        .map_err(|e| anyhow::anyhow!("{e}"))?;
+    Ok(())
 }
 
 fn record_ffn_block(
     worker: &mut Scheme,
+    tensors: &mut TensorContext,
     kernels: &PreparedKernels,
-    buffers: &ModelBuffers,
+    buffers: &ModelTensors,
     shape: &ModelShape,
-    weights: &LayerWeightOffsets,
+    weights: &LayerWeightViews<'_>,
     layer: usize,
-) {
+) -> Result<()> {
     kernels
         .rmsnorm
         .record(
             worker,
             leak(format!("rmsnorm_ffn_{layer}")),
             &buffers.x,
-            &buffers.weights,
+            &weights.rms_ffn,
             &buffers.xb,
             shape.dim,
-            weights.rms_ffn,
+            u32::try_from(weights.rms_ffn.storage_offset()).unwrap(),
         )
         .groups([1, 1, 1]);
 
     record_gemv(
+        tensors,
         worker,
         leak(format!("w1_{layer}")),
-        &buffers.xb,
-        &buffers.weights,
-        &buffers.hb,
-        shape.hidden_dim,
-        shape.dim,
+        buffers.xb.view(),
         weights.w1,
-    );
+        buffers.hb.view(),
+    )?;
 
     record_gemv(
+        tensors,
         worker,
         leak(format!("w3_{layer}")),
-        &buffers.xb,
-        &buffers.weights,
-        &buffers.hb2,
-        shape.hidden_dim,
-        shape.dim,
+        buffers.xb.view(),
         weights.w3,
-    );
+        buffers.hb2.view(),
+    )?;
 
     kernels
         .swiglu
@@ -418,27 +411,25 @@ fn record_ffn_block(
             &buffers.hb2,
             shape.hidden_dim,
         )
-        .over_1d(shape.hidden_dim);
+        .over_tensor(&buffers.hb.view());
 
     record_gemv(
+        tensors,
         worker,
         leak(format!("w2_{layer}")),
-        &buffers.hb,
-        &buffers.weights,
-        &buffers.xb,
-        shape.dim,
-        shape.hidden_dim,
+        buffers.hb.view(),
         weights.w2,
-    );
+        buffers.xb.view(),
+    )?;
 
-    kernels
-        .residual_add
-        .record(
-            worker,
+    tensors
+        .recorder(worker)
+        .add_into(
             leak(format!("residual_ffn_{layer}")),
-            &buffers.x,
-            &buffers.xb,
-            shape.dim,
+            buffers.x.view(),
+            buffers.xb.view(),
+            buffers.x.view(),
         )
-        .over_1d(shape.dim);
+        .map_err(|e| anyhow::anyhow!("{e}"))?;
+    Ok(())
 }

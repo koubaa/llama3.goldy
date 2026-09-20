@@ -46,15 +46,6 @@ fn gemv(
     }
 }
 
-/// Residual add: `a[i] += b[i]`.
-#[goldy::compute(workgroup_size = [256, 1, 1])]
-fn residual_add(a: &mut [f32], b: &[f32], size: u32) {
-    let i = goldy::gpu::global_id().x;
-    if i < size {
-        a[i] = a[i] + b[i];
-    }
-}
-
 /// RMSNorm into `o` (one workgroup, strided over `size`).
 #[goldy::compute(workgroup_size = [256, 1, 1])]
 fn rmsnorm(
@@ -212,7 +203,6 @@ fn swiglu(hb: &mut [f32], hb2: &[f32], hidden_dim: u32) {
 pub use attention::Kernel as AttentionKernel;
 pub use embed::Kernel as EmbedKernel;
 pub use gemv::Kernel as GemvKernel;
-pub use residual_add::Kernel as ResidualAddKernel;
 pub use rmsnorm::Kernel as RmsnormKernel;
 pub use rmsnorm_inplace::Kernel as RmsnormInplaceKernel;
 pub use rope::Kernel as RopeKernel;

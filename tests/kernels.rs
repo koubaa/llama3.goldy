@@ -5,7 +5,7 @@
 use goldy::{BufferKind, DepositTarget, MemoryExchange, Runtime, Scheme};
 use llama3_goldy::gpu::create_runtime;
 use llama3_goldy::kernels::{
-    DecodeStep, EmbedKernel, GemvKernel, ResidualAddKernel, RmsnormKernel, RopeKernel, SwigluKernel,
+    DecodeStep, EmbedKernel, GemvKernel, RmsnormKernel, RopeKernel, SwigluKernel,
 };
 
 fn runtime() -> Runtime {
@@ -72,7 +72,7 @@ fn rope_at_pos_zero_is_identity() {
 }
 
 #[test]
-fn gemv_identity_and_residual_add() {
+fn gemv_identity() {
     let device = runtime();
     let ctx = device.create_context().unwrap();
     let x = device
@@ -90,16 +90,6 @@ fn gemv_identity_and_residual_add() {
     gemv.record(&mut scheme, "gemv", &x, &w, &out, &step, 2, 2, 0, 0, 0)
         .over_1d(2);
     assert_eq!(read_f32(&mut scheme, &out), vec![1.0, 2.0]);
-
-    let b = device
-        .acquire_buffer_with_data(&[3.0f32, 4.0], BufferKind::Scattered)
-        .unwrap();
-    let residual = ResidualAddKernel::prepare(&device).unwrap();
-    let mut scheme = Scheme::new(&ctx);
-    residual
-        .record(&mut scheme, "residual", &out, &b, 2)
-        .over_1d(2);
-    assert_eq!(read_f32(&mut scheme, &out), vec![4.0, 6.0]);
 }
 
 #[test]

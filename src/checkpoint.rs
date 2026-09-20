@@ -160,6 +160,20 @@ pub struct WeightLayout {
     pub shared_classifier: bool,
 }
 
+/// Named tensor views into the packed FP32 weight blob for one layer.
+#[derive(Debug, Clone, Copy)]
+pub struct LayerWeightViews<'a> {
+    pub rms_att: goldy::TensorView<'a>,
+    pub wq: goldy::TensorView<'a>,
+    pub wk: goldy::TensorView<'a>,
+    pub wv: goldy::TensorView<'a>,
+    pub wo: goldy::TensorView<'a>,
+    pub rms_ffn: goldy::TensorView<'a>,
+    pub w1: goldy::TensorView<'a>,
+    pub w2: goldy::TensorView<'a>,
+    pub w3: goldy::TensorView<'a>,
+}
+
 impl WeightLayout {
     pub fn from_config(config: &Config, shared_classifier: bool) -> Result<Self> {
         config.validate()?;
@@ -241,6 +255,52 @@ impl WeightLayout {
             w2: u32_offset(self.w2 + l * hidden * dim),
             w3: u32_offset(self.w3 + l * dim * hidden),
         }
+    }
+
+    fn packed_view<'a>(
+        weights: &'a goldy::Tensor,
+        offset: u64,
+        dims: &[u32],
+    ) -> Result<goldy::TensorView<'a>> {
+        let shape = goldy::TensorShape::from_dims(dims).map_err(|e| anyhow::anyhow!("{e}"))?;
+        goldy::TensorView::packed_at(weights.buffer(), goldy::TensorDType::F32, offset, shape)
+            .map_err(|e| anyhow::anyhow!("{e}"))
+    }
+
+    pub fn embedding<'a>(
+        &self,
+        weights: &'a goldy::Tensor,
+        shape: &ModelShape,
+    ) -> Result<goldy::TensorView<'a>> {
+        Self::packed_view(weights, self.token_embedding, &[shape.vocab, shape.dim])
+    }
+
+    pub fn rms_final<'a>(&self, weights: &'a goldy::Tensor, shape: &ModelShape) -> Result<goldy::TensorView<'a>> {
+        Self::packed_view(weights, self.rms_final_weight, &[shape.dim])
+    }
+
+    pub fn classifier<'a>(&self, weights: &'a goldy::Tensor, shape: &ModelShape) -> Result<goldy::TensorView<'a>> {
+        Self::packed_view(weights, self.wcls, &[shape.vocab, shape.dim])
+    }
+
+    pub fn layer_views<'a>(
+        &self,
+        weights: &'a goldy::Tensor,
+        layer: usize,
+        shape: &ModelShape,
+    ) -> Result<LayerWeightViews<'a>> {
+        let off = self.layer(layer, shape);
+        Ok(LayerWeightViews {
+            rms_att: Self::packed_view(weights, u64::from(off.rms_att), &[shape.dim])?,
+            wq: Self::packed_view(weights, u64::from(off.wq), &[shape.dim, shape.dim])?,
+            wk: Self::packed_view(weights, u64::from(off.wk), &[shape.kv_dim, shape.dim])?,
+            wv: Self::packed_view(weights, u64::from(off.wv), &[shape.kv_dim, shape.dim])?,
+            wo: Self::packed_view(weights, u64::from(off.wo), &[shape.dim, shape.dim])?,
+            rms_ffn: Self::packed_view(weights, u64::from(off.rms_ffn), &[shape.dim])?,
+            w1: Self::packed_view(weights, u64::from(off.w1), &[shape.hidden_dim, shape.dim])?,
+            w2: Self::packed_view(weights, u64::from(off.w2), &[shape.dim, shape.hidden_dim])?,
+            w3: Self::packed_view(weights, u64::from(off.w3), &[shape.hidden_dim, shape.dim])?,
+        })
     }
 }
 

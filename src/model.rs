@@ -8,8 +8,8 @@ use crate::kernels::{
 };
 use anyhow::{Context, Result};
 use goldy::{
-    Buffer, BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MemoryExchange,
-    ReplayStats, Runtime, Scheme, WithdrawTransaction,
+    Buffer, BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MatMulDesc, MatMulView,
+    MemoryExchange, ReplayStats, Runtime, Scheme, WithdrawTransaction,
 };
 
 struct PreparedKernels {
@@ -137,34 +137,28 @@ impl Model {
             record_layer(&mut worker, &kernels, &buffers, &shape, &layout, layer);
         }
 
-        kernels
-            .rmsnorm_inplace
-            .record(
-                &mut worker,
-                "rmsnorm_final",
-                &buffers.x,
-                &buffers.weights,
-                shape.dim,
-                u32::try_from(layout.rms_final_weight).unwrap(),
-            )
-            .groups([1, 1, 1]);
+    kernels
+        .rmsnorm_inplace
+        .record(
+            &mut worker,
+            "rmsnorm_final",
+            &buffers.x,
+            &buffers.weights,
+            shape.dim,
+            u32::try_from(layout.rms_final_weight).unwrap(),
+        )
+        .groups([1, 1, 1]);
 
-        kernels
-            .gemv
-            .record(
-                &mut worker,
-                "classifier",
-                &buffers.x,
-                &buffers.weights,
-                &buffers.logits,
-                &buffers.step,
-                shape.dim,
-                shape.vocab,
-                u32::try_from(layout.wcls).unwrap(),
-                0,
-                0,
-            )
-            .over_1d(shape.vocab);
+    record_gemv(
+        &mut worker,
+        "classifier",
+        &buffers.x,
+        &buffers.weights,
+        &buffers.logits,
+        shape.vocab,
+        shape.dim,
+        u32::try_from(layout.wcls).unwrap(),
+    );
 
         let memory = MemoryExchange::new(&ctx);
         let withdraw = memory.bind_withdraw(&mut worker, &buffers.logits)?;
@@ -216,6 +210,24 @@ fn leak(s: String) -> &'static str {
     Box::leak(s.into_boxed_str())
 }
 
+fn record_gemv(
+    worker: &mut Scheme,
+    label: &'static str,
+    x: &Buffer,
+    weights: &Buffer,
+    out: &Buffer,
+    rows: u32,
+    inner: u32,
+    weight_offset: u32,
+) {
+    worker
+        .matmul(label, MatMulDesc::gemv(rows, inner))
+        .a(weights, MatMulView::offset(u64::from(weight_offset)))
+        .b(x, MatMulView::packed())
+        .out(out, MatMulView::packed())
+        .record();
+}
+
 fn record_layer(
     worker: &mut Scheme,
     kernels: &PreparedKernels,
@@ -252,22 +264,16 @@ fn record_attention_block(
         )
         .groups([1, 1, 1]);
 
-    kernels
-        .gemv
-        .record(
-            worker,
-            leak(format!("wq_{layer}")),
-            &buffers.xb,
-            &buffers.weights,
-            &buffers.q,
-            &buffers.step,
-            shape.dim,
-            shape.dim,
-            weights.wq,
-            0,
-            0,
-        )
-        .over_1d(shape.dim);
+    record_gemv(
+        worker,
+        leak(format!("wq_{layer}")),
+        &buffers.xb,
+        &buffers.weights,
+        &buffers.q,
+        shape.dim,
+        shape.dim,
+        weights.wq,
+    );
 
     kernels
         .gemv
@@ -337,22 +343,16 @@ fn record_attention_block(
         )
         .groups([shape.n_heads, 1, 1]);
 
-    kernels
-        .gemv
-        .record(
-            worker,
-            leak(format!("wo_{layer}")),
-            &buffers.xb,
-            &buffers.weights,
-            &buffers.xb2,
-            &buffers.step,
-            shape.dim,
-            shape.dim,
-            weights.wo,
-            0,
-            0,
-        )
-        .over_1d(shape.dim);
+    record_gemv(
+        worker,
+        leak(format!("wo_{layer}")),
+        &buffers.xb,
+        &buffers.weights,
+        &buffers.xb2,
+        shape.dim,
+        shape.dim,
+        weights.wo,
+    );
 
     kernels
         .residual_add
@@ -387,39 +387,27 @@ fn record_ffn_block(
         )
         .groups([1, 1, 1]);
 
-    kernels
-        .gemv
-        .record(
-            worker,
-            leak(format!("w1_{layer}")),
-            &buffers.xb,
-            &buffers.weights,
-            &buffers.hb,
-            &buffers.step,
-            shape.dim,
-            shape.hidden_dim,
-            weights.w1,
-            0,
-            0,
-        )
-        .over_1d(shape.hidden_dim);
+    record_gemv(
+        worker,
+        leak(format!("w1_{layer}")),
+        &buffers.xb,
+        &buffers.weights,
+        &buffers.hb,
+        shape.hidden_dim,
+        shape.dim,
+        weights.w1,
+    );
 
-    kernels
-        .gemv
-        .record(
-            worker,
-            leak(format!("w3_{layer}")),
-            &buffers.xb,
-            &buffers.weights,
-            &buffers.hb2,
-            &buffers.step,
-            shape.dim,
-            shape.hidden_dim,
-            weights.w3,
-            0,
-            0,
-        )
-        .over_1d(shape.hidden_dim);
+    record_gemv(
+        worker,
+        leak(format!("w3_{layer}")),
+        &buffers.xb,
+        &buffers.weights,
+        &buffers.hb2,
+        shape.hidden_dim,
+        shape.dim,
+        weights.w3,
+    );
 
     kernels
         .swiglu
@@ -432,22 +420,16 @@ fn record_ffn_block(
         )
         .over_1d(shape.hidden_dim);
 
-    kernels
-        .gemv
-        .record(
-            worker,
-            leak(format!("w2_{layer}")),
-            &buffers.hb,
-            &buffers.weights,
-            &buffers.xb,
-            &buffers.step,
-            shape.hidden_dim,
-            shape.dim,
-            weights.w2,
-            0,
-            0,
-        )
-        .over_1d(shape.dim);
+    record_gemv(
+        worker,
+        leak(format!("w2_{layer}")),
+        &buffers.hb,
+        &buffers.weights,
+        &buffers.xb,
+        shape.dim,
+        shape.hidden_dim,
+        weights.w2,
+    );
 
     kernels
         .residual_add

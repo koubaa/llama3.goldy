@@ -4,10 +4,18 @@
 
 use goldy::{BufferKind, DepositTarget, MemoryExchange, Runtime, Scheme};
 use llama3_goldy::gpu::create_runtime;
-use llama3_goldy::kernels::{AccumKernel, EmbedKernel, MatmulKernel, RmsnormKernel, RopeKernel, SiluKernel};
+use llama3_goldy::kernels::{
+    DecodeStep, EmbedKernel, GemvKernel, ResidualAddKernel, RmsnormKernel, RopeKernel, SwigluKernel,
+};
 
 fn runtime() -> Runtime {
     create_runtime().expect("goldy runtime")
+}
+
+fn step_buf(device: &Runtime, token: u32, position: u32) -> goldy::Buffer {
+    device
+        .acquire_buffer_with_data(&[DecodeStep { token, position }], BufferKind::Scattered)
+        .unwrap()
 }
 
 fn read_f32(scheme: &mut Scheme, buf: &goldy::Buffer) -> Vec<f32> {
@@ -30,16 +38,14 @@ fn embed_gathers_selected_row() {
     let embed = device
         .acquire_buffer_with_data(&[1.0f32, 2.0, 3.0, 4.0], BufferKind::Scattered)
         .unwrap();
-    let control = device
-        .acquire_buffer_with_data(&[1u32, 0u32], BufferKind::Scattered)
-        .unwrap();
+    let step = step_buf(&device, 1, 0);
     let x = device
         .acquire_buffer_with_data(&[0.0f32, 0.0], BufferKind::Scattered)
         .unwrap();
     let kernel = EmbedKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
     kernel
-        .record(&mut scheme, "embed", &embed, &control, &x, 2)
+        .record(&mut scheme, "embed", &embed, &step, &x, 2)
         .over_1d(2);
     let got = read_f32(&mut scheme, &x);
     assert_eq!(got, vec![3.0, 4.0]);
@@ -55,20 +61,18 @@ fn rope_at_pos_zero_is_identity() {
     let k = device
         .acquire_buffer_with_data(&[5.0f32, 6.0, 7.0, 8.0], BufferKind::Scattered)
         .unwrap();
-    let control = device
-        .acquire_buffer_with_data(&[0u32, 0u32], BufferKind::Scattered)
-        .unwrap();
+    let step = step_buf(&device, 0, 0);
     let kernel = RopeKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
     kernel
-        .record(&mut scheme, "rope", &q, &k, &control, 4, 2, 4, 0)
+        .record(&mut scheme, "rope", &q, &k, &step, 4, 2, 4, 0)
         .over_1d(2);
     let q_out = read_f32(&mut scheme, &q);
     assert_eq!(q_out, vec![1.0, 2.0, 3.0, 4.0]);
 }
 
 #[test]
-fn matmul_identity_and_accum() {
+fn gemv_identity_and_residual_add() {
     let device = runtime();
     let ctx = device.create_context().unwrap();
     let x = device
@@ -80,27 +84,26 @@ fn matmul_identity_and_accum() {
     let out = device
         .acquire_buffer_with_data(&[0.0f32, 0.0], BufferKind::Scattered)
         .unwrap();
-    let control = device
-        .acquire_buffer_with_data(&[0u32, 0u32], BufferKind::Scattered)
-        .unwrap();
-    let matmul = MatmulKernel::prepare(&device).unwrap();
+    let step = step_buf(&device, 0, 0);
+    let gemv = GemvKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    matmul
-        .record(&mut scheme, "mm", &x, &w, &out, &control, 2, 2, 0, 0, 0)
+    gemv.record(&mut scheme, "gemv", &x, &w, &out, &step, 2, 2, 0, 0, 0)
         .over_1d(2);
     assert_eq!(read_f32(&mut scheme, &out), vec![1.0, 2.0]);
 
     let b = device
         .acquire_buffer_with_data(&[3.0f32, 4.0], BufferKind::Scattered)
         .unwrap();
-    let accum = AccumKernel::prepare(&device).unwrap();
+    let residual = ResidualAddKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    accum.record(&mut scheme, "acc", &out, &b, 2).over_1d(2);
+    residual
+        .record(&mut scheme, "residual", &out, &b, 2)
+        .over_1d(2);
     assert_eq!(read_f32(&mut scheme, &out), vec![4.0, 6.0]);
 }
 
 #[test]
-fn silu_of_zero_is_zero() {
+fn swiglu_of_zero_is_zero() {
     let device = runtime();
     let ctx = device.create_context().unwrap();
     let hb = device
@@ -109,9 +112,11 @@ fn silu_of_zero_is_zero() {
     let hb2 = device
         .acquire_buffer_with_data(&[5.0f32, 7.0], BufferKind::Scattered)
         .unwrap();
-    let kernel = SiluKernel::prepare(&device).unwrap();
+    let kernel = SwigluKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    kernel.record(&mut scheme, "silu", &hb, &hb2, 2).over_1d(2);
+    kernel
+        .record(&mut scheme, "swiglu", &hb, &hb2, 2)
+        .over_1d(2);
     assert_eq!(read_f32(&mut scheme, &hb), vec![0.0, 0.0]);
 }
 
@@ -148,16 +153,14 @@ fn deposit_feeds_embed_without_rerecord() {
     let embed = device
         .acquire_buffer_with_data(&[10.0f32, 20.0, 30.0, 40.0], BufferKind::Scattered)
         .unwrap();
-    let control = device
-        .acquire_buffer_with_data(&[0u32, 0u32], BufferKind::Scattered)
-        .unwrap();
+    let step = step_buf(&device, 0, 0);
     let x = device
         .acquire_buffer_with_data(&[0.0f32, 0.0], BufferKind::Scattered)
         .unwrap();
     let kernel = EmbedKernel::prepare(&device).unwrap();
     let mut worker = Scheme::new(&ctx);
     kernel
-        .record(&mut worker, "embed", &embed, &control, &x, 2)
+        .record(&mut worker, "embed", &embed, &step, &x, 2)
         .over_1d(2);
     let grant = MemoryExchange::new(&ctx)
         .bind_withdraw(&mut worker, &x)
@@ -166,11 +169,13 @@ fn deposit_feeds_embed_without_rerecord() {
     let deposit = MemoryExchange::new(&ctx)
         .bind_deposit(
             &mut upload,
-            DepositTarget::buffer_elements::<u32>(&control, 2),
+            DepositTarget::buffer_elements::<DecodeStep>(&step, 1),
         )
         .unwrap();
     for token in [0u32, 1u32] {
-        deposit.write_data(0, &[token, 0]).unwrap();
+        deposit
+            .write_data(0, &[DecodeStep { token, position: 0 }])
+            .unwrap();
         let _ = upload.submit().unwrap();
         let mut sub = worker.submit().unwrap();
         let bytes = grant.claim(&mut sub).unwrap().consume().unwrap();

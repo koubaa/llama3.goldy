@@ -1,46 +1,101 @@
 //! Retained Goldy transformer matching llama3.cuda `forward()`.
 
-use crate::checkpoint::{Checkpoint, Config, WeightLayout};
+use crate::checkpoint::{Checkpoint, Config, LayerWeightOffsets, ModelShape, WeightLayout};
 use crate::gpu::create_runtime;
 use crate::kernels::{
-    AccumKernel, AttentionKernel, EmbedKernel, MatmulKernel, RmsnormInplaceKernel, RmsnormKernel, RopeKernel,
-    SiluKernel,
+    AttentionKernel, DecodeStep, EmbedKernel, GemvKernel, ResidualAddKernel, RmsnormInplaceKernel,
+    RmsnormKernel, RopeKernel, SwigluKernel,
 };
 use anyhow::{Context, Result};
 use goldy::{
-    Buffer, BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MemoryExchange, ReplayStats, Runtime,
-    Scheme, WithdrawTransaction,
+    Buffer, BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MemoryExchange,
+    ReplayStats, Runtime, Scheme, WithdrawTransaction,
 };
 
-struct Pipelines {
+struct PreparedKernels {
     embed: EmbedKernel,
     rmsnorm: RmsnormKernel,
     rmsnorm_inplace: RmsnormInplaceKernel,
-    matmul: MatmulKernel,
+    gemv: GemvKernel,
     rope: RopeKernel,
     attention: AttentionKernel,
-    silu: SiluKernel,
-    accum: AccumKernel,
+    swiglu: SwigluKernel,
+    residual_add: ResidualAddKernel,
+}
+
+impl PreparedKernels {
+    fn prepare(runtime: &Runtime) -> Result<Self> {
+        Ok(Self {
+            embed: EmbedKernel::prepare(runtime).context("prepare embed kernel")?,
+            rmsnorm: RmsnormKernel::prepare(runtime).context("prepare rmsnorm kernel")?,
+            rmsnorm_inplace: RmsnormInplaceKernel::prepare(runtime)
+                .context("prepare rmsnorm_inplace kernel")?,
+            gemv: GemvKernel::prepare(runtime).context("prepare gemv kernel")?,
+            rope: RopeKernel::prepare(runtime).context("prepare rope kernel")?,
+            attention: AttentionKernel::prepare(runtime).context("prepare attention kernel")?,
+            swiglu: SwigluKernel::prepare(runtime).context("prepare swiglu kernel")?,
+            residual_add: ResidualAddKernel::prepare(runtime)
+                .context("prepare residual_add kernel")?,
+        })
+    }
+}
+
+struct ModelBuffers {
+    weights: Buffer,
+    x: Buffer,
+    xb: Buffer,
+    xb2: Buffer,
+    hb: Buffer,
+    hb2: Buffer,
+    q: Buffer,
+    att: Buffer,
+    key_cache: Buffer,
+    value_cache: Buffer,
+    step: Buffer,
+    logits: Buffer,
+    #[allow(dead_code)]
+    runtime: Runtime,
+}
+
+impl ModelBuffers {
+    fn allocate(runtime: Runtime, checkpoint: &Checkpoint, shape: &ModelShape) -> Result<Self> {
+        let zeros = |n: usize| vec![0f32; n];
+        let dim = shape.dim as usize;
+        let hidden = shape.hidden_dim as usize;
+        let kv_elems = (shape.n_layers * shape.seq_len * shape.kv_dim) as usize;
+        let att_elems = (shape.n_heads * shape.seq_len) as usize;
+        Ok(Self {
+            weights: runtime
+                .acquire_buffer_with_data(&checkpoint.weights, BufferKind::Scattered)
+                .context("upload weights")?,
+            x: runtime.acquire_buffer_with_data(&zeros(dim), BufferKind::Scattered)?,
+            xb: runtime.acquire_buffer_with_data(&zeros(dim), BufferKind::Scattered)?,
+            xb2: runtime.acquire_buffer_with_data(&zeros(dim), BufferKind::Scattered)?,
+            hb: runtime.acquire_buffer_with_data(&zeros(hidden), BufferKind::Scattered)?,
+            hb2: runtime.acquire_buffer_with_data(&zeros(hidden), BufferKind::Scattered)?,
+            q: runtime.acquire_buffer_with_data(&zeros(dim), BufferKind::Scattered)?,
+            att: runtime.acquire_buffer_with_data(&zeros(att_elems), BufferKind::Scattered)?,
+            key_cache: runtime.acquire_buffer_with_data(&zeros(kv_elems), BufferKind::Scattered)?,
+            value_cache: runtime
+                .acquire_buffer_with_data(&zeros(kv_elems), BufferKind::Scattered)?,
+            step: runtime.acquire_buffer_with_data(
+                &[DecodeStep {
+                    token: 0,
+                    position: 0,
+                }],
+                BufferKind::Scattered,
+            )?,
+            logits: runtime
+                .acquire_buffer_with_data(&zeros(shape.vocab as usize), BufferKind::Scattered)?,
+            runtime,
+        })
+    }
 }
 
 pub struct Model {
-    #[allow(dead_code)]
-    runtime: Runtime,
     pub config: Config,
-    _layout: WeightLayout,
-    _weights: Buffer,
-    _x: Buffer,
-    _xb: Buffer,
-    _xb2: Buffer,
-    _hb: Buffer,
-    _hb2: Buffer,
-    _q: Buffer,
-    _att: Buffer,
-    _key_cache: Buffer,
-    _value_cache: Buffer,
-    _control: Buffer,
-    _logits: Buffer,
-    _pipelines: Pipelines,
+    _buffers: ModelBuffers,
+    _kernels: PreparedKernels,
     worker: Scheme,
     upload: Scheme,
     deposit: DepositTransaction,
@@ -60,143 +115,70 @@ impl Model {
 
     fn build(runtime: Runtime, ctx: GpuContext, checkpoint: &Checkpoint) -> Result<Self> {
         let config = checkpoint.config;
+        let shape = config.shape();
         let layout = checkpoint.layout;
-        let dim = config.dim() as u32;
-        let hidden_dim = config.hidden_dim() as u32;
-        let kv_dim = config.kv_dim() as u32;
-        let n_heads = config.n_heads() as u32;
-        let kv_mul = config.kv_mul() as u32;
-        let head_size = config.head_size() as u32;
-        let seq_len = config.max_seq_len() as u32;
-        let vocab = config.vocab_size() as u32;
-        let n_layers = config.n_layers();
-
-        let pipelines = Pipelines {
-            embed: EmbedKernel::prepare(&runtime).context("prepare embed kernel")?,
-            rmsnorm: RmsnormKernel::prepare(&runtime).context("prepare rmsnorm kernel")?,
-            rmsnorm_inplace: RmsnormInplaceKernel::prepare(&runtime)
-                .context("prepare rmsnorm_inplace kernel")?,
-            matmul: MatmulKernel::prepare(&runtime).context("prepare matmul kernel")?,
-            rope: RopeKernel::prepare(&runtime).context("prepare rope kernel")?,
-            attention: AttentionKernel::prepare(&runtime).context("prepare attention kernel")?,
-            silu: SiluKernel::prepare(&runtime).context("prepare silu kernel")?,
-            accum: AccumKernel::prepare(&runtime).context("prepare accum kernel")?,
-        };
-
-        let zeros = |n: usize| vec![0f32; n];
-        let weights = runtime
-            .acquire_buffer_with_data(&checkpoint.weights, BufferKind::Scattered)
-            .context("upload weights")?;
-        let x = runtime.acquire_buffer_with_data(&zeros(config.dim()), BufferKind::Scattered)?;
-        let xb = runtime.acquire_buffer_with_data(&zeros(config.dim()), BufferKind::Scattered)?;
-        let xb2 = runtime.acquire_buffer_with_data(&zeros(config.dim()), BufferKind::Scattered)?;
-        let hb =
-            runtime.acquire_buffer_with_data(&zeros(config.hidden_dim()), BufferKind::Scattered)?;
-        let hb2 =
-            runtime.acquire_buffer_with_data(&zeros(config.hidden_dim()), BufferKind::Scattered)?;
-        let q = runtime.acquire_buffer_with_data(&zeros(config.dim()), BufferKind::Scattered)?;
-        let att = runtime.acquire_buffer_with_data(
-            &zeros(config.n_heads() * config.max_seq_len()),
-            BufferKind::Scattered,
-        )?;
-        let kv_elems = config.n_layers() * config.max_seq_len() * config.kv_dim();
-        let key_cache =
-            runtime.acquire_buffer_with_data(&zeros(kv_elems), BufferKind::Scattered)?;
-        let value_cache =
-            runtime.acquire_buffer_with_data(&zeros(kv_elems), BufferKind::Scattered)?;
-        let control = runtime.acquire_buffer_with_data(&[0u32, 0u32], BufferKind::Scattered)?;
-        let logits =
-            runtime.acquire_buffer_with_data(&zeros(config.vocab_size()), BufferKind::Scattered)?;
+        let kernels = PreparedKernels::prepare(&runtime)?;
+        let buffers = ModelBuffers::allocate(runtime, checkpoint, &shape)?;
 
         let mut worker = Scheme::new(&ctx);
-        pipelines
+        kernels
             .embed
-            .record(&mut worker, "embed", &weights, &control, &x, dim)
-            .over_1d(dim);
-
-        for layer in 0..n_layers {
-            record_layer(
+            .record(
                 &mut worker,
-                &pipelines,
-                layer,
-                &config,
-                &layout,
-                &weights,
-                &x,
-                &xb,
-                &xb2,
-                &hb,
-                &hb2,
-                &q,
-                &att,
-                &key_cache,
-                &value_cache,
-                &control,
-                dim,
-                hidden_dim,
-                kv_dim,
-                n_heads,
-                kv_mul,
-                head_size,
-                seq_len,
-            );
+                "embed",
+                &buffers.weights,
+                &buffers.step,
+                &buffers.x,
+                shape.dim,
+            )
+            .over_1d(shape.dim);
+
+        for layer in 0..shape.n_layers as usize {
+            record_layer(&mut worker, &kernels, &buffers, &shape, &layout, layer);
         }
 
-        pipelines
+        kernels
             .rmsnorm_inplace
             .record(
                 &mut worker,
                 "rmsnorm_final",
-                &x,
-                &weights,
-                dim,
+                &buffers.x,
+                &buffers.weights,
+                shape.dim,
                 u32::try_from(layout.rms_final_weight).unwrap(),
             )
             .groups([1, 1, 1]);
 
-        pipelines
-            .matmul
+        kernels
+            .gemv
             .record(
                 &mut worker,
                 "classifier",
-                &x,
-                &weights,
-                &logits,
-                &control,
-                dim,
-                vocab,
+                &buffers.x,
+                &buffers.weights,
+                &buffers.logits,
+                &buffers.step,
+                shape.dim,
+                shape.vocab,
                 u32::try_from(layout.wcls).unwrap(),
                 0,
                 0,
             )
-            .over_1d(vocab);
+            .over_1d(shape.vocab);
 
         let memory = MemoryExchange::new(&ctx);
-        let withdraw = memory.bind_withdraw(&mut worker, &logits)?;
+        let withdraw = memory.bind_withdraw(&mut worker, &buffers.logits)?;
 
         let mut upload = Scheme::new(&ctx);
         let deposit = memory.bind_deposit(
             &mut upload,
-            DepositTarget::buffer_elements::<u32>(&control, 2),
+            DepositTarget::buffer_elements::<DecodeStep>(&buffers.step, 1),
         )?;
 
         Ok(Self {
-            runtime,
             config,
-            _layout: layout,
-            _weights: weights,
-            _x: x,
-            _xb: xb,
-            _xb2: xb2,
-            _hb: hb,
-            _hb2: hb2,
-            _q: q,
-            _att: att,
-            _key_cache: key_cache,
-            _value_cache: value_cache,
-            _control: control,
-            _logits: logits,
-            _pipelines: pipelines,
+            _buffers: buffers,
+            _kernels: kernels,
             worker,
             upload,
             deposit,
@@ -205,7 +187,13 @@ impl Model {
     }
 
     pub fn step(&mut self, token: u32, pos: u32) -> Result<Vec<f32>> {
-        self.deposit.write_data(0, &[token, pos])?;
+        self.deposit.write_data(
+            0,
+            &[DecodeStep {
+                token,
+                position: pos,
+            }],
+        )?;
         let _ = self.upload.submit()?;
         let mut submission = self.worker.submit()?;
         let bytes = self.withdraw.claim(&mut submission)?.consume()?;
@@ -228,228 +216,247 @@ fn leak(s: String) -> &'static str {
     Box::leak(s.into_boxed_str())
 }
 
-#[allow(clippy::too_many_arguments)]
 fn record_layer(
     worker: &mut Scheme,
-    pipelines: &Pipelines,
-    layer: usize,
-    config: &Config,
+    kernels: &PreparedKernels,
+    buffers: &ModelBuffers,
+    shape: &ModelShape,
     layout: &WeightLayout,
-    weights: &Buffer,
-    x: &Buffer,
-    xb: &Buffer,
-    xb2: &Buffer,
-    hb: &Buffer,
-    hb2: &Buffer,
-    q: &Buffer,
-    att: &Buffer,
-    key_cache: &Buffer,
-    value_cache: &Buffer,
-    control: &Buffer,
-    dim: u32,
-    hidden_dim: u32,
-    kv_dim: u32,
-    n_heads: u32,
-    kv_mul: u32,
-    head_size: u32,
-    seq_len: u32,
+    layer: usize,
 ) {
-    let dim_us = config.dim();
-    let hidden_us = config.hidden_dim();
-    let kv_us = config.kv_dim();
-    let loff = (layer * config.max_seq_len() * config.kv_dim()) as u32;
+    let loff = layer as u32 * shape.seq_len * shape.kv_dim;
+    let weights = layout.layer(layer, shape);
+    record_attention_block(worker, kernels, buffers, shape, &weights, layer, loff);
+    record_ffn_block(worker, kernels, buffers, shape, &weights, layer);
+}
 
-    pipelines
+fn record_attention_block(
+    worker: &mut Scheme,
+    kernels: &PreparedKernels,
+    buffers: &ModelBuffers,
+    shape: &ModelShape,
+    weights: &LayerWeightOffsets,
+    layer: usize,
+    loff: u32,
+) {
+    kernels
         .rmsnorm
         .record(
             worker,
             leak(format!("rmsnorm_att_{layer}")),
-            x,
-            weights,
-            xb,
-            dim,
-            layout.rms_att_layer(layer, dim_us),
+            &buffers.x,
+            &buffers.weights,
+            &buffers.xb,
+            shape.dim,
+            weights.rms_att,
         )
         .groups([1, 1, 1]);
 
-    pipelines
-        .matmul
+    kernels
+        .gemv
         .record(
             worker,
             leak(format!("wq_{layer}")),
-            xb,
-            weights,
-            q,
-            control,
-            dim,
-            dim,
-            layout.wq_layer(layer, dim_us),
+            &buffers.xb,
+            &buffers.weights,
+            &buffers.q,
+            &buffers.step,
+            shape.dim,
+            shape.dim,
+            weights.wq,
             0,
             0,
         )
-        .over_1d(dim);
+        .over_1d(shape.dim);
 
-    pipelines
-        .matmul
+    kernels
+        .gemv
         .record(
             worker,
             leak(format!("wk_{layer}")),
-            xb,
-            weights,
-            key_cache,
-            control,
-            dim,
-            kv_dim,
-            layout.wk_layer(layer, dim_us, kv_us),
+            &buffers.xb,
+            &buffers.weights,
+            &buffers.key_cache,
+            &buffers.step,
+            shape.dim,
+            shape.kv_dim,
+            weights.wk,
             loff,
-            kv_dim,
+            shape.kv_dim,
         )
-        .over_1d(kv_dim);
+        .over_1d(shape.kv_dim);
 
-    pipelines
-        .matmul
+    kernels
+        .gemv
         .record(
             worker,
             leak(format!("wv_{layer}")),
-            xb,
-            weights,
-            value_cache,
-            control,
-            dim,
-            kv_dim,
-            layout.wv_layer(layer, dim_us, kv_us),
+            &buffers.xb,
+            &buffers.weights,
+            &buffers.value_cache,
+            &buffers.step,
+            shape.dim,
+            shape.kv_dim,
+            weights.wv,
             loff,
-            kv_dim,
+            shape.kv_dim,
         )
-        .over_1d(kv_dim);
+        .over_1d(shape.kv_dim);
 
-    pipelines
+    kernels
         .rope
         .record(
             worker,
             leak(format!("rope_{layer}")),
-            q,
-            key_cache,
-            control,
-            kv_dim,
-            head_size,
-            dim,
+            &buffers.q,
+            &buffers.key_cache,
+            &buffers.step,
+            shape.kv_dim,
+            shape.head_size,
+            shape.dim,
             loff,
         )
-        .over_1d((dim / 2).max(1));
+        .over_1d((shape.dim / 2).max(1));
 
-    pipelines
+    kernels
         .attention
         .record(
             worker,
             leak(format!("attn_{layer}")),
-            q,
-            att,
-            xb,
-            key_cache,
-            value_cache,
-            control,
-            kv_dim,
-            kv_mul,
-            head_size,
-            seq_len,
+            &buffers.q,
+            &buffers.att,
+            &buffers.xb,
+            &buffers.key_cache,
+            &buffers.value_cache,
+            &buffers.step,
+            shape.kv_dim,
+            shape.kv_mul,
+            shape.head_size,
+            shape.seq_len,
             loff,
         )
-        .groups([n_heads, 1, 1]);
+        .groups([shape.n_heads, 1, 1]);
 
-    pipelines
-        .matmul
+    kernels
+        .gemv
         .record(
             worker,
             leak(format!("wo_{layer}")),
-            xb,
-            weights,
-            xb2,
-            control,
-            dim,
-            dim,
-            layout.wo_layer(layer, dim_us),
+            &buffers.xb,
+            &buffers.weights,
+            &buffers.xb2,
+            &buffers.step,
+            shape.dim,
+            shape.dim,
+            weights.wo,
             0,
             0,
         )
-        .over_1d(dim);
+        .over_1d(shape.dim);
 
-    pipelines
-        .accum
-        .record(worker, leak(format!("accum_att_{layer}")), x, xb2, dim)
-        .over_1d(dim);
+    kernels
+        .residual_add
+        .record(
+            worker,
+            leak(format!("residual_att_{layer}")),
+            &buffers.x,
+            &buffers.xb2,
+            shape.dim,
+        )
+        .over_1d(shape.dim);
+}
 
-    pipelines
+fn record_ffn_block(
+    worker: &mut Scheme,
+    kernels: &PreparedKernels,
+    buffers: &ModelBuffers,
+    shape: &ModelShape,
+    weights: &LayerWeightOffsets,
+    layer: usize,
+) {
+    kernels
         .rmsnorm
         .record(
             worker,
             leak(format!("rmsnorm_ffn_{layer}")),
-            x,
-            weights,
-            xb,
-            dim,
-            layout.rms_ffn_layer(layer, dim_us),
+            &buffers.x,
+            &buffers.weights,
+            &buffers.xb,
+            shape.dim,
+            weights.rms_ffn,
         )
         .groups([1, 1, 1]);
 
-    pipelines
-        .matmul
+    kernels
+        .gemv
         .record(
             worker,
             leak(format!("w1_{layer}")),
-            xb,
-            weights,
-            hb,
-            control,
-            dim,
-            hidden_dim,
-            layout.w1_layer(layer, dim_us, hidden_us),
+            &buffers.xb,
+            &buffers.weights,
+            &buffers.hb,
+            &buffers.step,
+            shape.dim,
+            shape.hidden_dim,
+            weights.w1,
             0,
             0,
         )
-        .over_1d(hidden_dim);
+        .over_1d(shape.hidden_dim);
 
-    pipelines
-        .matmul
+    kernels
+        .gemv
         .record(
             worker,
             leak(format!("w3_{layer}")),
-            xb,
-            weights,
-            hb2,
-            control,
-            dim,
-            hidden_dim,
-            layout.w3_layer(layer, dim_us, hidden_us),
+            &buffers.xb,
+            &buffers.weights,
+            &buffers.hb2,
+            &buffers.step,
+            shape.dim,
+            shape.hidden_dim,
+            weights.w3,
             0,
             0,
         )
-        .over_1d(hidden_dim);
+        .over_1d(shape.hidden_dim);
 
-    pipelines
-        .silu
-        .record(worker, leak(format!("silu_{layer}")), hb, hb2, hidden_dim)
-        .over_1d(hidden_dim);
+    kernels
+        .swiglu
+        .record(
+            worker,
+            leak(format!("swiglu_{layer}")),
+            &buffers.hb,
+            &buffers.hb2,
+            shape.hidden_dim,
+        )
+        .over_1d(shape.hidden_dim);
 
-    pipelines
-        .matmul
+    kernels
+        .gemv
         .record(
             worker,
             leak(format!("w2_{layer}")),
-            hb,
-            weights,
-            xb,
-            control,
-            hidden_dim,
-            dim,
-            layout.w2_layer(layer, dim_us, hidden_us),
+            &buffers.hb,
+            &buffers.weights,
+            &buffers.xb,
+            &buffers.step,
+            shape.hidden_dim,
+            shape.dim,
+            weights.w2,
             0,
             0,
         )
-        .over_1d(dim);
+        .over_1d(shape.dim);
 
-    pipelines
-        .accum
-        .record(worker, leak(format!("accum_ffn_{layer}")), x, xb, dim)
-        .over_1d(dim);
+    kernels
+        .residual_add
+        .record(
+            worker,
+            leak(format!("residual_ffn_{layer}")),
+            &buffers.x,
+            &buffers.xb,
+            shape.dim,
+        )
+        .over_1d(shape.dim);
 }

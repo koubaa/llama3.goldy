@@ -1,24 +1,33 @@
 //! Rust GPU-dialect kernels matching the llama3.cuda FP32 forward pass.
 
+#![allow(clippy::too_many_arguments)]
+
 pub const WORKGROUP: u32 = 256;
+
+/// Token and sequence position uploaded each decode step.
+#[goldy::gpu]
+pub struct DecodeStep {
+    pub token: u32,
+    pub position: u32,
+}
 
 /// Gather one embedding row: `x[i] = embed[token * dim + i]`.
 #[goldy::compute(workgroup_size = [256, 1, 1])]
-fn embed(embed: &[f32], control: &[u32], x: goldy::gpu::Scattered<f32>, dim: u32) {
+fn embed(embed: &[f32], step: &[DecodeStep], x: goldy::gpu::Scattered<f32>, dim: u32) {
     let i = goldy::gpu::global_id().x;
     if i < dim {
-        let token = control[0];
+        let token = step[0].token;
         x[i] = embed[token * dim + i];
     }
 }
 
 /// Row-major GEMV with optional pos-strided output: `xout[out_base + pos * stride + i]`.
 #[goldy::compute(workgroup_size = [256, 1, 1])]
-fn matmul(
+fn gemv(
     x: &[f32],
     w: &[f32],
     xout: goldy::gpu::Scattered<f32>,
-    control: &[u32],
+    step: &[DecodeStep],
     n: u32,
     d: u32,
     w_offset: u32,
@@ -27,7 +36,7 @@ fn matmul(
 ) {
     let i = goldy::gpu::global_id().x;
     if i < d {
-        let pos = control[1];
+        let pos = step[0].position;
         let out_i = out_base + pos * stride_from_pos + i;
         let mut sum = 0.0;
         for j in 0..n {
@@ -39,7 +48,7 @@ fn matmul(
 
 /// Residual add: `a[i] += b[i]`.
 #[goldy::compute(workgroup_size = [256, 1, 1])]
-fn accum(a: &mut [f32], b: &[f32], size: u32) {
+fn residual_add(a: &mut [f32], b: &[f32], size: u32) {
     let i = goldy::gpu::global_id().x;
     if i < size {
         a[i] = a[i] + b[i];
@@ -103,7 +112,7 @@ fn rmsnorm_inplace(x: &mut [f32], weight: &[f32], size: u32, weight_offset: u32)
 fn rope(
     q: &mut [f32],
     k: &mut [f32],
-    control: &[u32],
+    step: &[DecodeStep],
     kv_dim: u32,
     head_size: u32,
     dim: u32,
@@ -113,7 +122,7 @@ fn rope(
     if i >= dim {
         return;
     }
-    let pos = control[1];
+    let pos = step[0].position;
     let k_base = loff + pos * kv_dim;
     let head_dim = (i % head_size) as i32;
     let freq = 1.0 / goldy::gpu::pow(10000.0, (head_dim as f32) / (head_size as f32));
@@ -147,7 +156,7 @@ fn attention(
     xb: goldy::gpu::Scattered<f32>,
     key_cache: &[f32],
     value_cache: &[f32],
-    control: &[u32],
+    step: &[DecodeStep],
     kv_dim: u32,
     kv_mul: u32,
     head_size: u32,
@@ -157,7 +166,7 @@ fn attention(
     let mut scratch = goldy::gpu::workgroup_array::<f32, 256>();
     let h = goldy::gpu::workgroup_id().x;
     let local = goldy::gpu::local_id().x;
-    let pos = control[1];
+    let pos = step[0].position;
     let q_base = h * head_size;
     let att_base = h * seq_len;
     let kv_head = h / kv_mul;
@@ -189,7 +198,7 @@ fn attention(
 
 /// SwiGLU: `hb[i] *= silu(hb[i]) * hb2[i]`.
 #[goldy::compute(workgroup_size = [256, 1, 1])]
-fn silu(hb: &mut [f32], hb2: &[f32], hidden_dim: u32) {
+fn swiglu(hb: &mut [f32], hb2: &[f32], hidden_dim: u32) {
     let i = goldy::gpu::global_id().x;
     if i >= hidden_dim {
         return;
@@ -200,11 +209,11 @@ fn silu(hb: &mut [f32], hb2: &[f32], hidden_dim: u32) {
     hb[i] = val;
 }
 
-pub use accum::Kernel as AccumKernel;
 pub use attention::Kernel as AttentionKernel;
 pub use embed::Kernel as EmbedKernel;
-pub use matmul::Kernel as MatmulKernel;
+pub use gemv::Kernel as GemvKernel;
+pub use residual_add::Kernel as ResidualAddKernel;
 pub use rmsnorm::Kernel as RmsnormKernel;
 pub use rmsnorm_inplace::Kernel as RmsnormInplaceKernel;
 pub use rope::Kernel as RopeKernel;
-pub use silu::Kernel as SiluKernel;
+pub use swiglu::Kernel as SwigluKernel;

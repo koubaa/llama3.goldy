@@ -64,6 +64,21 @@ impl Config {
         self.n_heads() / self.n_kv_heads()
     }
 
+    pub fn shape(&self) -> ModelShape {
+        ModelShape {
+            dim: self.dim() as u32,
+            hidden_dim: self.hidden_dim() as u32,
+            n_layers: self.n_layers() as u32,
+            n_heads: self.n_heads() as u32,
+            n_kv_heads: self.n_kv_heads() as u32,
+            kv_dim: self.kv_dim() as u32,
+            kv_mul: self.kv_mul() as u32,
+            head_size: self.head_size() as u32,
+            seq_len: self.max_seq_len() as u32,
+            vocab: self.vocab_size() as u32,
+        }
+    }
+
     pub fn validate(&self) -> Result<()> {
         if self.dim <= 0
             || self.hidden_dim <= 0
@@ -95,6 +110,35 @@ impl Config {
 
 fn usize_field(value: i32, name: &str) -> usize {
     usize::try_from(value).unwrap_or_else(|_| panic!("{name} overflowed usize: {value}"))
+}
+
+/// Derived dimensions used by kernels and the retained graph.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ModelShape {
+    pub dim: u32,
+    pub hidden_dim: u32,
+    pub n_layers: u32,
+    pub n_heads: u32,
+    pub n_kv_heads: u32,
+    pub kv_dim: u32,
+    pub kv_mul: u32,
+    pub head_size: u32,
+    pub seq_len: u32,
+    pub vocab: u32,
+}
+
+/// Packed-blob element offsets for one transformer layer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LayerWeightOffsets {
+    pub rms_att: u32,
+    pub wq: u32,
+    pub wk: u32,
+    pub wv: u32,
+    pub wo: u32,
+    pub rms_ffn: u32,
+    pub w1: u32,
+    pub w2: u32,
+    pub w3: u32,
 }
 
 /// Element offsets into the packed FP32 weight blob (not bytes).
@@ -180,40 +224,23 @@ impl WeightLayout {
         })
     }
 
-    pub fn rms_att_layer(&self, layer: usize, dim: usize) -> u32 {
-        u32_offset(self.rms_att_weight + (layer * dim) as u64)
-    }
-
-    pub fn rms_ffn_layer(&self, layer: usize, dim: usize) -> u32 {
-        u32_offset(self.rms_ffn_weight + (layer * dim) as u64)
-    }
-
-    pub fn wq_layer(&self, layer: usize, dim: usize) -> u32 {
-        u32_offset(self.wq + (layer * dim * dim) as u64)
-    }
-
-    pub fn wk_layer(&self, layer: usize, dim: usize, kv_dim: usize) -> u32 {
-        u32_offset(self.wk + (layer * dim * kv_dim) as u64)
-    }
-
-    pub fn wv_layer(&self, layer: usize, dim: usize, kv_dim: usize) -> u32 {
-        u32_offset(self.wv + (layer * dim * kv_dim) as u64)
-    }
-
-    pub fn wo_layer(&self, layer: usize, dim: usize) -> u32 {
-        u32_offset(self.wo + (layer * dim * dim) as u64)
-    }
-
-    pub fn w1_layer(&self, layer: usize, dim: usize, hidden_dim: usize) -> u32 {
-        u32_offset(self.w1 + (layer * dim * hidden_dim) as u64)
-    }
-
-    pub fn w2_layer(&self, layer: usize, dim: usize, hidden_dim: usize) -> u32 {
-        u32_offset(self.w2 + (layer * hidden_dim * dim) as u64)
-    }
-
-    pub fn w3_layer(&self, layer: usize, dim: usize, hidden_dim: usize) -> u32 {
-        u32_offset(self.w3 + (layer * dim * hidden_dim) as u64)
+    pub fn layer(&self, layer: usize, shape: &ModelShape) -> LayerWeightOffsets {
+        let l = layer as u64;
+        let dim = u64::from(shape.dim);
+        let hidden = u64::from(shape.hidden_dim);
+        let q = u64::from(shape.n_heads) * u64::from(shape.head_size);
+        let kv = u64::from(shape.kv_dim);
+        LayerWeightOffsets {
+            rms_att: u32_offset(self.rms_att_weight + l * dim),
+            wq: u32_offset(self.wq + l * dim * q),
+            wk: u32_offset(self.wk + l * dim * kv),
+            wv: u32_offset(self.wv + l * dim * kv),
+            wo: u32_offset(self.wo + l * q * dim),
+            rms_ffn: u32_offset(self.rms_ffn_weight + l * dim),
+            w1: u32_offset(self.w1 + l * dim * hidden),
+            w2: u32_offset(self.w2 + l * hidden * dim),
+            w3: u32_offset(self.w3 + l * dim * hidden),
+        }
     }
 }
 
@@ -355,6 +382,27 @@ mod tests {
         assert_eq!(layout.wcls, 0);
         assert_eq!(layout.n_floats, ptr);
         assert!(layout.shared_classifier);
+
+        let shape = cfg.shape();
+        let layer0 = layout.layer(0, &shape);
+        assert_eq!(layer0.rms_att, layout.rms_att_weight as u32);
+        assert_eq!(layer0.wq, layout.wq as u32);
+        assert_eq!(layer0.w3, layout.w3 as u32);
+    }
+
+    #[test]
+    fn layer_offsets_stride_by_tensor_size() {
+        let mut cfg = tiny_config();
+        cfg.n_layers = 2;
+        let layout = WeightLayout::from_config(&cfg, true).unwrap();
+        let shape = cfg.shape();
+        let l0 = layout.layer(0, &shape);
+        let l1 = layout.layer(1, &shape);
+        assert_eq!(l1.rms_att, l0.rms_att + shape.dim);
+        assert_eq!(l1.wq, l0.wq + shape.dim * shape.dim);
+        assert_eq!(l1.wk, l0.wk + shape.dim * shape.kv_dim);
+        assert_eq!(l1.w2, l0.w2 + shape.hidden_dim * shape.dim);
+        assert_eq!(l1.w3, l0.w3 + shape.dim * shape.hidden_dim);
     }
 
     #[test]

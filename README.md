@@ -4,7 +4,7 @@ FP32 TinyStories generator on [Goldy](https://github.com/koubaa/goldy), replicat
 
 This is **not** Meta Llama 3. The first checkpoint is Karpathy’s 15M TinyStories model (Llama-2-style MHA, RoPE θ=10,000) served through `llama3.cuda`’s layout and greedy loop. Kernels keep `n_kv_heads` generic so a later GQA checkpoint can exercise grouped-query attention. Llama 3 tokenizer / RoPE scaling / GGUF are out of scope.
 
-There is **no CPU transformer**. Host code loads the checkpoint, tokenizes, uploads `[token, pos]`, and greedy-argmaxes withdrawn logits. All RMSNorm / GEMV / RoPE / attention / SwiGLU / residual math runs in one retained Goldy scheme.
+There is **no CPU transformer**. Host code loads the checkpoint, tokenizes, uploads a `DecodeStep { token, position }`, and greedy-argmaxes withdrawn logits. All RMSNorm / GEMV / RoPE / attention / SwiGLU / residual math runs in one retained Goldy scheme.
 
 
 ## Assets
@@ -61,7 +61,7 @@ On macOS, use `--features metal` in place of `cuda`. Metal hardware is required 
 ## Goldy mapping
 
 - Weights: one retained FP32 `Scattered` blob, layer offsets baked as `with_param`
-- `[token, pos]`: small control parcel, **separate** upload `Scheme` + `MemoryExchange` deposit so the worker is never mutated
+- `DecodeStep { token, position }`: small control parcel, **separate** upload `Scheme` + `MemoryExchange` deposit so the worker is never mutated
 - KV cache: persistent buffers; K/V GEMV writes `loff + pos * kv_dim`
 - Worker: unrolled layer graph recorded once (Goldy may add a second record if shader specialization promotes); `topology_records == 0`
 - Logits: `bind_withdraw` after each worker submit

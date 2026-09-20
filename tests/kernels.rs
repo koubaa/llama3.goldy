@@ -7,6 +7,7 @@ use goldy::{
     ShaderModule,
 };
 use llama3_goldy::gpu::create_runtime;
+use llama3_goldy::kernels::{AccumKernel, EmbedKernel, MatmulKernel};
 use llama3_goldy::shaders;
 
 fn runtime() -> Runtime {
@@ -39,19 +40,11 @@ fn embed_gathers_selected_row() {
     let x = device
         .acquire_buffer_with_data(&[0.0f32, 0.0], BufferKind::Scattered)
         .unwrap();
-    let pipeline = ComputePipeline::new(
-        &device,
-        &ShaderModule::from_slang(&device, shaders::EMBED).unwrap(),
-    )
-    .unwrap();
+    let kernel = EmbedKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    scheme
-        .node("embed", &pipeline)
-        .with_parcel(&embed, NodeAccess::Read)
-        .with_parcel(&control, NodeAccess::Read)
-        .with_parcel(&x, NodeAccess::Write)
-        .with_param(2)
-        .dispatch(1, 1, 1);
+    kernel
+        .record(&mut scheme, "embed", &embed, &control, &x, 2)
+        .over_1d(2);
     let got = read_f32(&mut scheme, &x);
     assert_eq!(got, vec![3.0, 4.0]);
 }
@@ -105,41 +98,19 @@ fn matmul_identity_and_accum() {
     let control = device
         .acquire_buffer_with_data(&[0u32, 0u32], BufferKind::Scattered)
         .unwrap();
-    let matmul = ComputePipeline::new(
-        &device,
-        &ShaderModule::from_slang(&device, shaders::MATMUL).unwrap(),
-    )
-    .unwrap();
+    let matmul = MatmulKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    scheme
-        .node("mm", &matmul)
-        .with_parcel(&x, NodeAccess::Read)
-        .with_parcel(&w, NodeAccess::Read)
-        .with_parcel(&out, NodeAccess::Write)
-        .with_parcel(&control, NodeAccess::Read)
-        .with_param(2)
-        .with_param(2)
-        .with_param(0)
-        .with_param(0)
-        .with_param(0)
-        .dispatch(1, 1, 1);
+    matmul
+        .record(&mut scheme, "mm", &x, &w, &out, &control, 2, 2, 0, 0, 0)
+        .over_1d(2);
     assert_eq!(read_f32(&mut scheme, &out), vec![1.0, 2.0]);
 
     let b = device
         .acquire_buffer_with_data(&[3.0f32, 4.0], BufferKind::Scattered)
         .unwrap();
-    let accum = ComputePipeline::new(
-        &device,
-        &ShaderModule::from_slang(&device, shaders::ACCUM).unwrap(),
-    )
-    .unwrap();
+    let accum = AccumKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    scheme
-        .node("acc", &accum)
-        .with_parcel(&out, NodeAccess::ReadWrite)
-        .with_parcel(&b, NodeAccess::Read)
-        .with_param(2)
-        .dispatch(1, 1, 1);
+    accum.record(&mut scheme, "acc", &out, &b, 2).over_1d(2);
     assert_eq!(read_f32(&mut scheme, &out), vec![4.0, 6.0]);
 }
 
@@ -216,19 +187,11 @@ fn deposit_feeds_embed_without_rerecord() {
     let x = device
         .acquire_buffer_with_data(&[0.0f32, 0.0], BufferKind::Scattered)
         .unwrap();
-    let pipeline = ComputePipeline::new(
-        &device,
-        &ShaderModule::from_slang(&device, shaders::EMBED).unwrap(),
-    )
-    .unwrap();
+    let kernel = EmbedKernel::prepare(&device).unwrap();
     let mut worker = Scheme::new(&ctx);
-    worker
-        .node("embed", &pipeline)
-        .with_parcel(&embed, NodeAccess::Read)
-        .with_parcel(&control, NodeAccess::Read)
-        .with_parcel(&x, NodeAccess::Write)
-        .with_param(2)
-        .dispatch(1, 1, 1);
+    kernel
+        .record(&mut worker, "embed", &embed, &control, &x, 2)
+        .over_1d(2);
     let grant = MemoryExchange::new(&ctx)
         .bind_withdraw(&mut worker, &x)
         .unwrap();

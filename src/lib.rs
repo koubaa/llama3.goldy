@@ -8,6 +8,8 @@ pub mod generate;
 #[cfg(any(feature = "cuda", feature = "metal"))]
 pub mod gpu;
 #[cfg(any(feature = "cuda", feature = "metal"))]
+pub mod kernels;
+#[cfg(any(feature = "cuda", feature = "metal"))]
 pub mod model;
 #[cfg(any(feature = "cuda", feature = "metal"))]
 pub mod shaders;

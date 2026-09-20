@@ -2,6 +2,7 @@
 
 use crate::checkpoint::{Checkpoint, Config, WeightLayout};
 use crate::gpu::create_runtime;
+use crate::kernels::{AccumKernel, EmbedKernel, MatmulKernel};
 use crate::shaders::{self, WORKGROUP};
 use anyhow::{Context, Result};
 use goldy::{
@@ -10,14 +11,14 @@ use goldy::{
 };
 
 struct Pipelines {
-    embed: ComputePipeline,
+    embed: EmbedKernel,
     rmsnorm: ComputePipeline,
     rmsnorm_inplace: ComputePipeline,
-    matmul: ComputePipeline,
+    matmul: MatmulKernel,
     rope: ComputePipeline,
     attention: ComputePipeline,
     silu: ComputePipeline,
-    accum: ComputePipeline,
+    accum: AccumKernel,
 }
 
 pub struct Model {
@@ -69,14 +70,14 @@ impl Model {
         let n_layers = config.n_layers();
 
         let pipelines = Pipelines {
-            embed: pipeline(&runtime, shaders::EMBED, "embed")?,
+            embed: EmbedKernel::prepare(&runtime).context("prepare embed kernel")?,
             rmsnorm: pipeline(&runtime, shaders::RMSNORM, "rmsnorm")?,
             rmsnorm_inplace: pipeline(&runtime, shaders::RMSNORM_INPLACE, "rmsnorm_inplace")?,
-            matmul: pipeline(&runtime, shaders::MATMUL, "matmul")?,
+            matmul: MatmulKernel::prepare(&runtime).context("prepare matmul kernel")?,
             rope: pipeline(&runtime, shaders::ROPE, "rope")?,
             attention: pipeline(&runtime, shaders::ATTENTION, "attention")?,
             silu: pipeline(&runtime, shaders::SILU, "silu")?,
-            accum: pipeline(&runtime, shaders::ACCUM, "accum")?,
+            accum: AccumKernel::prepare(&runtime).context("prepare accum kernel")?,
         };
 
         let zeros = |n: usize| vec![0f32; n];
@@ -105,13 +106,10 @@ impl Model {
             runtime.acquire_buffer_with_data(&zeros(config.vocab_size()), BufferKind::Scattered)?;
 
         let mut worker = Scheme::new(&ctx);
-        worker
-            .node("embed", &pipelines.embed)
-            .with_parcel(&weights, NodeAccess::Read)
-            .with_parcel(&control, NodeAccess::Read)
-            .with_parcel(&x, NodeAccess::Write)
-            .with_param(dim)
-            .dispatch(shaders::div_up(dim, WORKGROUP), 1, 1);
+        pipelines
+            .embed
+            .record(&mut worker, "embed", &weights, &control, &x, dim)
+            .over_1d(dim);
 
         for layer in 0..n_layers {
             record_layer(
@@ -149,18 +147,22 @@ impl Model {
             .with_param(u32::try_from(layout.rms_final_weight).unwrap())
             .dispatch(1, 1, 1);
 
-        worker
-            .node("classifier", &pipelines.matmul)
-            .with_parcel(&x, NodeAccess::Read)
-            .with_parcel(&weights, NodeAccess::Read)
-            .with_parcel(&logits, NodeAccess::Write)
-            .with_parcel(&control, NodeAccess::Read)
-            .with_param(dim)
-            .with_param(vocab)
-            .with_param(u32::try_from(layout.wcls).unwrap())
-            .with_param(0)
-            .with_param(0)
-            .dispatch(shaders::div_up(vocab, WORKGROUP), 1, 1);
+        pipelines
+            .matmul
+            .record(
+                &mut worker,
+                "classifier",
+                &x,
+                &weights,
+                &logits,
+                &control,
+                dim,
+                vocab,
+                u32::try_from(layout.wcls).unwrap(),
+                0,
+                0,
+            )
+            .over_1d(vocab);
 
         let memory = MemoryExchange::new(&ctx);
         let withdraw = memory.bind_withdraw(&mut worker, &logits)?;
@@ -266,46 +268,56 @@ fn record_layer(
         .with_param(layout.rms_att_layer(layer, dim_us))
         .dispatch(1, 1, 1);
 
-    // q
-    worker
-        .node(leak(format!("wq_{layer}")), &pipelines.matmul)
-        .with_parcel(xb, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(q, NodeAccess::Write)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(dim)
-        .with_param(dim)
-        .with_param(layout.wq_layer(layer, dim_us))
-        .with_param(0)
-        .with_param(0)
-        .dispatch(shaders::div_up(dim, WORKGROUP), 1, 1);
+    pipelines
+        .matmul
+        .record(
+            worker,
+            leak(format!("wq_{layer}")),
+            xb,
+            weights,
+            q,
+            control,
+            dim,
+            dim,
+            layout.wq_layer(layer, dim_us),
+            0,
+            0,
+        )
+        .over_1d(dim);
 
-    // k into cache at loff + pos * kv_dim
-    worker
-        .node(leak(format!("wk_{layer}")), &pipelines.matmul)
-        .with_parcel(xb, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(key_cache, NodeAccess::Write)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(dim)
-        .with_param(kv_dim)
-        .with_param(layout.wk_layer(layer, dim_us, kv_us))
-        .with_param(loff)
-        .with_param(kv_dim)
-        .dispatch(shaders::div_up(kv_dim, WORKGROUP), 1, 1);
+    pipelines
+        .matmul
+        .record(
+            worker,
+            leak(format!("wk_{layer}")),
+            xb,
+            weights,
+            key_cache,
+            control,
+            dim,
+            kv_dim,
+            layout.wk_layer(layer, dim_us, kv_us),
+            loff,
+            kv_dim,
+        )
+        .over_1d(kv_dim);
 
-    worker
-        .node(leak(format!("wv_{layer}")), &pipelines.matmul)
-        .with_parcel(xb, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(value_cache, NodeAccess::Write)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(dim)
-        .with_param(kv_dim)
-        .with_param(layout.wv_layer(layer, dim_us, kv_us))
-        .with_param(loff)
-        .with_param(kv_dim)
-        .dispatch(shaders::div_up(kv_dim, WORKGROUP), 1, 1);
+    pipelines
+        .matmul
+        .record(
+            worker,
+            leak(format!("wv_{layer}")),
+            xb,
+            weights,
+            value_cache,
+            control,
+            dim,
+            kv_dim,
+            layout.wv_layer(layer, dim_us, kv_us),
+            loff,
+            kv_dim,
+        )
+        .over_1d(kv_dim);
 
     worker
         .node(leak(format!("rope_{layer}")), &pipelines.rope)
@@ -333,25 +345,27 @@ fn record_layer(
         .with_param(loff)
         .dispatch(n_heads, 1, 1);
 
-    worker
-        .node(leak(format!("wo_{layer}")), &pipelines.matmul)
-        .with_parcel(xb, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(xb2, NodeAccess::Write)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(dim)
-        .with_param(dim)
-        .with_param(layout.wo_layer(layer, dim_us))
-        .with_param(0)
-        .with_param(0)
-        .dispatch(shaders::div_up(dim, WORKGROUP), 1, 1);
+    pipelines
+        .matmul
+        .record(
+            worker,
+            leak(format!("wo_{layer}")),
+            xb,
+            weights,
+            xb2,
+            control,
+            dim,
+            dim,
+            layout.wo_layer(layer, dim_us),
+            0,
+            0,
+        )
+        .over_1d(dim);
 
-    worker
-        .node(leak(format!("accum_att_{layer}")), &pipelines.accum)
-        .with_parcel(x, NodeAccess::ReadWrite)
-        .with_parcel(xb2, NodeAccess::Read)
-        .with_param(dim)
-        .dispatch(shaders::div_up(dim, WORKGROUP), 1, 1);
+    pipelines
+        .accum
+        .record(worker, leak(format!("accum_att_{layer}")), x, xb2, dim)
+        .over_1d(dim);
 
     worker
         .node(leak(format!("rmsnorm_ffn_{layer}")), &pipelines.rmsnorm)
@@ -362,31 +376,39 @@ fn record_layer(
         .with_param(layout.rms_ffn_layer(layer, dim_us))
         .dispatch(1, 1, 1);
 
-    worker
-        .node(leak(format!("w1_{layer}")), &pipelines.matmul)
-        .with_parcel(xb, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(hb, NodeAccess::Write)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(dim)
-        .with_param(hidden_dim)
-        .with_param(layout.w1_layer(layer, dim_us, hidden_us))
-        .with_param(0)
-        .with_param(0)
-        .dispatch(shaders::div_up(hidden_dim, WORKGROUP), 1, 1);
+    pipelines
+        .matmul
+        .record(
+            worker,
+            leak(format!("w1_{layer}")),
+            xb,
+            weights,
+            hb,
+            control,
+            dim,
+            hidden_dim,
+            layout.w1_layer(layer, dim_us, hidden_us),
+            0,
+            0,
+        )
+        .over_1d(hidden_dim);
 
-    worker
-        .node(leak(format!("w3_{layer}")), &pipelines.matmul)
-        .with_parcel(xb, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(hb2, NodeAccess::Write)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(dim)
-        .with_param(hidden_dim)
-        .with_param(layout.w3_layer(layer, dim_us, hidden_us))
-        .with_param(0)
-        .with_param(0)
-        .dispatch(shaders::div_up(hidden_dim, WORKGROUP), 1, 1);
+    pipelines
+        .matmul
+        .record(
+            worker,
+            leak(format!("w3_{layer}")),
+            xb,
+            weights,
+            hb2,
+            control,
+            dim,
+            hidden_dim,
+            layout.w3_layer(layer, dim_us, hidden_us),
+            0,
+            0,
+        )
+        .over_1d(hidden_dim);
 
     worker
         .node(leak(format!("silu_{layer}")), &pipelines.silu)
@@ -395,23 +417,25 @@ fn record_layer(
         .with_param(hidden_dim)
         .dispatch(shaders::div_up(hidden_dim, WORKGROUP), 1, 1);
 
-    worker
-        .node(leak(format!("w2_{layer}")), &pipelines.matmul)
-        .with_parcel(hb, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(xb, NodeAccess::Write)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(hidden_dim)
-        .with_param(dim)
-        .with_param(layout.w2_layer(layer, dim_us, hidden_us))
-        .with_param(0)
-        .with_param(0)
-        .dispatch(shaders::div_up(dim, WORKGROUP), 1, 1);
+    pipelines
+        .matmul
+        .record(
+            worker,
+            leak(format!("w2_{layer}")),
+            hb,
+            weights,
+            xb,
+            control,
+            hidden_dim,
+            dim,
+            layout.w2_layer(layer, dim_us, hidden_us),
+            0,
+            0,
+        )
+        .over_1d(dim);
 
-    worker
-        .node(leak(format!("accum_ffn_{layer}")), &pipelines.accum)
-        .with_parcel(x, NodeAccess::ReadWrite)
-        .with_parcel(xb, NodeAccess::Read)
-        .with_param(dim)
-        .dispatch(shaders::div_up(dim, WORKGROUP), 1, 1);
+    pipelines
+        .accum
+        .record(worker, leak(format!("accum_ffn_{layer}")), x, xb, dim)
+        .over_1d(dim);
 }

@@ -64,6 +64,7 @@ On macOS, use `--features metal` in place of `cuda`. Metal hardware is required 
 ## Goldy mapping
 
 - Weights: one retained FP32 tensor blob; this crate maps llama2.c offsets to `TensorView`s
+- Graph ops: Ammon kernels only (`TensorKernels` re-exports Goldy add / semantic matmul)
 - `DecodeStep { token, position }`: Ammon control parcel, **separate** upload `Scheme` + `MemoryExchange` deposit so the worker is never mutated
 - KV cache: persistent tensors; K/V GEMV writes `loff + pos * kv_dim`
 - Worker: unrolled layer graph recorded once (Goldy may add a second record if shader specialization promotes); `topology_records == 0`

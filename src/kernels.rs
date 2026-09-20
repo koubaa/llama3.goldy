@@ -64,17 +64,7 @@ fn rmsnorm(
         ss = ss + v * v;
         j = j + 256;
     }
-    scratch[local] = ss;
-    for i in 0..8 {
-        goldy::gpu::workgroup_barrier();
-        if local + (1u32 << i) < 256 {
-            ss = ss + scratch[local + (1u32 << i)];
-        }
-        goldy::gpu::workgroup_barrier();
-        scratch[local] = ss;
-    }
-    goldy::gpu::workgroup_barrier();
-    ss = scratch[0];
+    ss = goldy::gpu::workgroup_sum::<256>(ss, scratch);
     ss = ss / (size as f32);
     ss = ss + 1e-5;
     ss = 1.0 / goldy::gpu::sqrt(ss);
@@ -97,17 +87,7 @@ fn rmsnorm_inplace(x: &mut [f32], weight: &[f32], size: u32, weight_offset: u32)
         ss = ss + v * v;
         j = j + 256;
     }
-    scratch[local] = ss;
-    for i in 0..8 {
-        goldy::gpu::workgroup_barrier();
-        if local + (1u32 << i) < 256 {
-            ss = ss + scratch[local + (1u32 << i)];
-        }
-        goldy::gpu::workgroup_barrier();
-        scratch[local] = ss;
-    }
-    goldy::gpu::workgroup_barrier();
-    ss = scratch[0];
+    ss = goldy::gpu::workgroup_sum::<256>(ss, scratch);
     ss = ss / (size as f32);
     ss = ss + 1e-5;
     ss = 1.0 / goldy::gpu::sqrt(ss);
@@ -182,7 +162,6 @@ fn attention(
     let att_base = h * seq_len;
     let kv_head = h / kv_mul;
 
-    let mut local_max = -1e30;
     let mut t = local;
     while t <= pos {
         let mut score = 0.0;
@@ -192,51 +171,9 @@ fn attention(
         }
         score = score / goldy::gpu::sqrt(head_size as f32);
         att[att_base + t] = score;
-        if score > local_max {
-            local_max = score;
-        }
         t = t + 256;
     }
-
-    let mut val = local_max;
-    scratch[local] = val;
-    for i in 0..8 {
-        goldy::gpu::workgroup_barrier();
-        if local + (1u32 << i) < 256 {
-            val = goldy::gpu::max(val, scratch[local + (1u32 << i)]);
-        }
-        goldy::gpu::workgroup_barrier();
-        scratch[local] = val;
-    }
-    goldy::gpu::workgroup_barrier();
-    let max_val = scratch[0];
-
-    let mut local_sum = 0.0;
-    t = local;
-    while t <= pos {
-        let e = goldy::gpu::exp(att[att_base + t] - max_val);
-        att[att_base + t] = e;
-        local_sum = local_sum + e;
-        t = t + 256;
-    }
-    val = local_sum;
-    scratch[local] = val;
-    for i in 0..8 {
-        goldy::gpu::workgroup_barrier();
-        if local + (1u32 << i) < 256 {
-            val = val + scratch[local + (1u32 << i)];
-        }
-        goldy::gpu::workgroup_barrier();
-        scratch[local] = val;
-    }
-    goldy::gpu::workgroup_barrier();
-    let sum = scratch[0];
-    t = local;
-    while t <= pos {
-        att[att_base + t] = att[att_base + t] / sum;
-        t = t + 256;
-    }
-    goldy::gpu::workgroup_barrier();
+    goldy::gpu::workgroup_softmax_in_place::<256>(att, att_base, pos + 1, scratch);
 
     let mut i = local;
     while i < head_size {

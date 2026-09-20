@@ -2,13 +2,9 @@
 
 #![cfg(any(feature = "cuda", feature = "metal"))]
 
-use goldy::{
-    BufferKind, ComputePipeline, DepositTarget, MemoryExchange, NodeAccess, Runtime, Scheme,
-    ShaderModule,
-};
+use goldy::{BufferKind, DepositTarget, MemoryExchange, Runtime, Scheme};
 use llama3_goldy::gpu::create_runtime;
-use llama3_goldy::kernels::{AccumKernel, EmbedKernel, MatmulKernel};
-use llama3_goldy::shaders;
+use llama3_goldy::kernels::{AccumKernel, EmbedKernel, MatmulKernel, RmsnormKernel, RopeKernel, SiluKernel};
 
 fn runtime() -> Runtime {
     create_runtime().expect("goldy runtime")
@@ -62,22 +58,11 @@ fn rope_at_pos_zero_is_identity() {
     let control = device
         .acquire_buffer_with_data(&[0u32, 0u32], BufferKind::Scattered)
         .unwrap();
-    let pipeline = ComputePipeline::new(
-        &device,
-        &ShaderModule::from_slang(&device, shaders::ROPE).unwrap(),
-    )
-    .unwrap();
+    let kernel = RopeKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    scheme
-        .node("rope", &pipeline)
-        .with_parcel(&q, NodeAccess::ReadWrite)
-        .with_parcel(&k, NodeAccess::ReadWrite)
-        .with_parcel(&control, NodeAccess::Read)
-        .with_param(4) // kv_dim
-        .with_param(2) // head_size
-        .with_param(4) // dim
-        .with_param(0) // loff
-        .dispatch(1, 1, 1);
+    kernel
+        .record(&mut scheme, "rope", &q, &k, &control, 4, 2, 4, 0)
+        .over_1d(2);
     let q_out = read_f32(&mut scheme, &q);
     assert_eq!(q_out, vec![1.0, 2.0, 3.0, 4.0]);
 }
@@ -124,18 +109,9 @@ fn silu_of_zero_is_zero() {
     let hb2 = device
         .acquire_buffer_with_data(&[5.0f32, 7.0], BufferKind::Scattered)
         .unwrap();
-    let pipeline = ComputePipeline::new(
-        &device,
-        &ShaderModule::from_slang(&device, shaders::SILU).unwrap(),
-    )
-    .unwrap();
+    let kernel = SiluKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    scheme
-        .node("silu", &pipeline)
-        .with_parcel(&hb, NodeAccess::ReadWrite)
-        .with_parcel(&hb2, NodeAccess::Read)
-        .with_param(2)
-        .dispatch(1, 1, 1);
+    kernel.record(&mut scheme, "silu", &hb, &hb2, 2).over_1d(2);
     assert_eq!(read_f32(&mut scheme, &hb), vec![0.0, 0.0]);
 }
 
@@ -152,20 +128,11 @@ fn rmsnorm_matches_llama3_cuda_formula() {
     let o = device
         .acquire_buffer_with_data(&[0.0f32; 4], BufferKind::Scattered)
         .unwrap();
-    let pipeline = ComputePipeline::new(
-        &device,
-        &ShaderModule::from_slang(&device, shaders::RMSNORM).unwrap(),
-    )
-    .unwrap();
+    let kernel = RmsnormKernel::prepare(&device).unwrap();
     let mut scheme = Scheme::new(&ctx);
-    scheme
-        .node("rms", &pipeline)
-        .with_parcel(&x, NodeAccess::Read)
-        .with_parcel(&w, NodeAccess::Read)
-        .with_parcel(&o, NodeAccess::Write)
-        .with_param(4)
-        .with_param(0)
-        .dispatch(1, 1, 1);
+    kernel
+        .record(&mut scheme, "rms", &x, &w, &o, 4, 0)
+        .groups([1, 1, 1]);
     let got = read_f32(&mut scheme, &o);
     let ss = 1.0f32 + 1e-5;
     let scale = 1.0 / ss.sqrt();

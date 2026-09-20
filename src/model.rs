@@ -2,22 +2,24 @@
 
 use crate::checkpoint::{Checkpoint, Config, WeightLayout};
 use crate::gpu::create_runtime;
-use crate::kernels::{AccumKernel, EmbedKernel, MatmulKernel};
-use crate::shaders::{self, WORKGROUP};
+use crate::kernels::{
+    AccumKernel, AttentionKernel, EmbedKernel, MatmulKernel, RmsnormInplaceKernel, RmsnormKernel, RopeKernel,
+    SiluKernel,
+};
 use anyhow::{Context, Result};
 use goldy::{
-    Buffer, BufferKind, ComputePipeline, Context as GpuContext, DepositTarget, DepositTransaction,
-    MemoryExchange, NodeAccess, ReplayStats, Runtime, Scheme, ShaderModule, WithdrawTransaction,
+    Buffer, BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MemoryExchange, ReplayStats, Runtime,
+    Scheme, WithdrawTransaction,
 };
 
 struct Pipelines {
     embed: EmbedKernel,
-    rmsnorm: ComputePipeline,
-    rmsnorm_inplace: ComputePipeline,
+    rmsnorm: RmsnormKernel,
+    rmsnorm_inplace: RmsnormInplaceKernel,
     matmul: MatmulKernel,
-    rope: ComputePipeline,
-    attention: ComputePipeline,
-    silu: ComputePipeline,
+    rope: RopeKernel,
+    attention: AttentionKernel,
+    silu: SiluKernel,
     accum: AccumKernel,
 }
 
@@ -71,12 +73,13 @@ impl Model {
 
         let pipelines = Pipelines {
             embed: EmbedKernel::prepare(&runtime).context("prepare embed kernel")?,
-            rmsnorm: pipeline(&runtime, shaders::RMSNORM, "rmsnorm")?,
-            rmsnorm_inplace: pipeline(&runtime, shaders::RMSNORM_INPLACE, "rmsnorm_inplace")?,
+            rmsnorm: RmsnormKernel::prepare(&runtime).context("prepare rmsnorm kernel")?,
+            rmsnorm_inplace: RmsnormInplaceKernel::prepare(&runtime)
+                .context("prepare rmsnorm_inplace kernel")?,
             matmul: MatmulKernel::prepare(&runtime).context("prepare matmul kernel")?,
-            rope: pipeline(&runtime, shaders::ROPE, "rope")?,
-            attention: pipeline(&runtime, shaders::ATTENTION, "attention")?,
-            silu: pipeline(&runtime, shaders::SILU, "silu")?,
+            rope: RopeKernel::prepare(&runtime).context("prepare rope kernel")?,
+            attention: AttentionKernel::prepare(&runtime).context("prepare attention kernel")?,
+            silu: SiluKernel::prepare(&runtime).context("prepare silu kernel")?,
             accum: AccumKernel::prepare(&runtime).context("prepare accum kernel")?,
         };
 
@@ -139,13 +142,17 @@ impl Model {
             );
         }
 
-        worker
-            .node("rmsnorm_final", &pipelines.rmsnorm_inplace)
-            .with_parcel(&x, NodeAccess::ReadWrite)
-            .with_parcel(&weights, NodeAccess::Read)
-            .with_param(dim)
-            .with_param(u32::try_from(layout.rms_final_weight).unwrap())
-            .dispatch(1, 1, 1);
+        pipelines
+            .rmsnorm_inplace
+            .record(
+                &mut worker,
+                "rmsnorm_final",
+                &x,
+                &weights,
+                dim,
+                u32::try_from(layout.rms_final_weight).unwrap(),
+            )
+            .groups([1, 1, 1]);
 
         pipelines
             .matmul
@@ -217,13 +224,6 @@ impl Model {
     }
 }
 
-fn pipeline(runtime: &Runtime, source: &str, label: &str) -> Result<ComputePipeline> {
-    let shader = ShaderModule::from_slang(runtime, source)
-        .with_context(|| format!("compile {label} shader"))?;
-    ComputePipeline::new_with_label(runtime, &shader, Some(label))
-        .with_context(|| format!("pipeline {label}"))
-}
-
 fn leak(s: String) -> &'static str {
     Box::leak(s.into_boxed_str())
 }
@@ -259,14 +259,18 @@ fn record_layer(
     let kv_us = config.kv_dim();
     let loff = (layer * config.max_seq_len() * config.kv_dim()) as u32;
 
-    worker
-        .node(leak(format!("rmsnorm_att_{layer}")), &pipelines.rmsnorm)
-        .with_parcel(x, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(xb, NodeAccess::Write)
-        .with_param(dim)
-        .with_param(layout.rms_att_layer(layer, dim_us))
-        .dispatch(1, 1, 1);
+    pipelines
+        .rmsnorm
+        .record(
+            worker,
+            leak(format!("rmsnorm_att_{layer}")),
+            x,
+            weights,
+            xb,
+            dim,
+            layout.rms_att_layer(layer, dim_us),
+        )
+        .groups([1, 1, 1]);
 
     pipelines
         .matmul
@@ -319,31 +323,39 @@ fn record_layer(
         )
         .over_1d(kv_dim);
 
-    worker
-        .node(leak(format!("rope_{layer}")), &pipelines.rope)
-        .with_parcel(q, NodeAccess::ReadWrite)
-        .with_parcel(key_cache, NodeAccess::ReadWrite)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(kv_dim)
-        .with_param(head_size)
-        .with_param(dim)
-        .with_param(loff)
-        .dispatch(shaders::div_up(dim / 2, WORKGROUP).max(1), 1, 1);
+    pipelines
+        .rope
+        .record(
+            worker,
+            leak(format!("rope_{layer}")),
+            q,
+            key_cache,
+            control,
+            kv_dim,
+            head_size,
+            dim,
+            loff,
+        )
+        .over_1d((dim / 2).max(1));
 
-    worker
-        .node(leak(format!("attn_{layer}")), &pipelines.attention)
-        .with_parcel(q, NodeAccess::Read)
-        .with_parcel(att, NodeAccess::ReadWrite)
-        .with_parcel(xb, NodeAccess::Write)
-        .with_parcel(key_cache, NodeAccess::Read)
-        .with_parcel(value_cache, NodeAccess::Read)
-        .with_parcel(control, NodeAccess::Read)
-        .with_param(kv_dim)
-        .with_param(kv_mul)
-        .with_param(head_size)
-        .with_param(seq_len)
-        .with_param(loff)
-        .dispatch(n_heads, 1, 1);
+    pipelines
+        .attention
+        .record(
+            worker,
+            leak(format!("attn_{layer}")),
+            q,
+            att,
+            xb,
+            key_cache,
+            value_cache,
+            control,
+            kv_dim,
+            kv_mul,
+            head_size,
+            seq_len,
+            loff,
+        )
+        .groups([n_heads, 1, 1]);
 
     pipelines
         .matmul
@@ -367,14 +379,18 @@ fn record_layer(
         .record(worker, leak(format!("accum_att_{layer}")), x, xb2, dim)
         .over_1d(dim);
 
-    worker
-        .node(leak(format!("rmsnorm_ffn_{layer}")), &pipelines.rmsnorm)
-        .with_parcel(x, NodeAccess::Read)
-        .with_parcel(weights, NodeAccess::Read)
-        .with_parcel(xb, NodeAccess::Write)
-        .with_param(dim)
-        .with_param(layout.rms_ffn_layer(layer, dim_us))
-        .dispatch(1, 1, 1);
+    pipelines
+        .rmsnorm
+        .record(
+            worker,
+            leak(format!("rmsnorm_ffn_{layer}")),
+            x,
+            weights,
+            xb,
+            dim,
+            layout.rms_ffn_layer(layer, dim_us),
+        )
+        .groups([1, 1, 1]);
 
     pipelines
         .matmul
@@ -410,12 +426,10 @@ fn record_layer(
         )
         .over_1d(hidden_dim);
 
-    worker
-        .node(leak(format!("silu_{layer}")), &pipelines.silu)
-        .with_parcel(hb, NodeAccess::ReadWrite)
-        .with_parcel(hb2, NodeAccess::Read)
-        .with_param(hidden_dim)
-        .dispatch(shaders::div_up(hidden_dim, WORKGROUP), 1, 1);
+    pipelines
+        .silu
+        .record(worker, leak(format!("silu_{layer}")), hb, hb2, hidden_dim)
+        .over_1d(hidden_dim);
 
     pipelines
         .matmul

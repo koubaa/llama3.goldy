@@ -6,7 +6,6 @@ This is **not** Meta Llama 3. The first checkpoint is Karpathy’s 15M TinyStori
 
 There is **no CPU transformer**. Host code loads the checkpoint, tokenizes, uploads `[token, pos]`, and greedy-argmaxes withdrawn logits. All RMSNorm / GEMV / RoPE / attention / SwiGLU / residual math runs in one retained Goldy scheme.
 
-Embed, GEMV, and residual add are `#[goldy::compute]` Rust kernels. RMSNorm, RoPE, attention, and SiLU stay in Slang until Goldy grows shared memory / barriers and extra math (`exp`/`cos`/`pow`).
 
 ## Assets
 

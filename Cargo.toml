@@ -3,18 +3,19 @@ name = "llama3-goldy"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "llama3.cuda TinyStories generator replicated on Goldy (CUDA / Metal)"
+description = "llama3.cuda TinyStories generator on Ammon / Goldy (CUDA / Metal)"
 publish = false
 
 [dependencies]
+ammon = { path = "../ammon", default-features = false }
 anyhow = "1.0"
 bytemuck = { version = "1.25", features = ["derive"] }
 goldy = { path = "../goldy", default-features = false, features = ["tensor"] }
 
 [features]
 default = []
-cuda = ["goldy/cuda"]
-metal = ["goldy/metal"]
+cuda = ["ammon/cuda", "goldy/cuda"]
+metal = ["ammon/metal", "goldy/metal"]
 
 [[bin]]
 name = "llama3-goldy"

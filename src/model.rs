@@ -1,11 +1,12 @@
 //! Retained Goldy transformer matching llama3.cuda `forward()`.
 
 use crate::checkpoint::{Checkpoint, Config, LayerWeightViews, ModelShape};
-use crate::gpu::create_runtime;
-use crate::kernels::{
+use ammon::gpu::create_runtime;
+use ammon::kernels::{
     AttentionKernel, DecodeStep, EmbedKernel, GemvKernel, RmsnormInplaceKernel, RmsnormKernel, RopeKernel,
-    SwigluKernel,
+    SwigluKernel, DEFAULT_ROPE_THETA,
 };
+use ammon::AutoregressiveModel;
 use anyhow::{Context, Result};
 use goldy::{
     BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MemoryExchange, ReplayStats, Runtime, Scheme,
@@ -209,6 +210,20 @@ impl Model {
     }
 }
 
+impl AutoregressiveModel for Model {
+    fn vocab_size(&self) -> usize {
+        self.config.vocab_size()
+    }
+
+    fn max_seq_len(&self) -> u32 {
+        self.config.max_seq_len() as u32
+    }
+
+    fn step(&mut self, token: u32, pos: u32) -> Result<Vec<f32>> {
+        Model::step(self, token, pos)
+    }
+}
+
 fn leak(s: String) -> &'static str {
     Box::leak(s.into_boxed_str())
 }
@@ -319,6 +334,7 @@ fn record_attention_block(
             shape.head_size,
             shape.dim,
             loff,
+            DEFAULT_ROPE_THETA,
         )
         .over_1d((shape.dim / 2).max(1));
 

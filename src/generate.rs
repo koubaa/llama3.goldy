@@ -1,9 +1,9 @@
-//! Prompt processing, greedy decode, and host-side control loop.
+//! Prompt processing, greedy decode, and llama3.cuda host compatibility.
 
 use crate::model::Model;
-use crate::tokenizer::{sample_argmax, Tokenizer};
+use crate::tokenizer::{apply_dream_prompt_patch, printable_piece, Tokenizer};
+use ammon::Tokenizer as _;
 use anyhow::Result;
-use std::time::Instant;
 
 /// llama3.cuda README output for `"I have a dream"` at 50 tokens on stories15M.
 pub const DREAM_STORY: &str = "\
@@ -26,52 +26,27 @@ pub fn generate(
     max_new_tokens: u32,
 ) -> Result<GenerateOutput> {
     let mut prompt_tokens = tokenizer.encode(prompt, true, false);
-    Tokenizer::apply_dream_prompt_patch(&mut prompt_tokens);
-    anyhow::ensure!(
-        !prompt_tokens.is_empty(),
-        "expected at least one prompt token"
-    );
+    apply_dream_prompt_patch(&mut prompt_tokens);
+    let out = ammon::generate_tokens(
+        model,
+        &prompt_tokens,
+        max_new_tokens,
+        Some(Tokenizer::bos_id()),
+    )?;
 
-    let max_new_tokens = max_new_tokens.min(model.config.max_seq_len() as u32);
     let mut text = String::new();
-    let mut tokens = Vec::new();
-    let mut token = prompt_tokens[0] as u32;
-    let mut pos = 0u32;
-    let mut start = None;
-
-    while pos < max_new_tokens.saturating_sub(1) {
-        let logits = model.step(token, pos)?;
-        let next = if (pos as usize) < prompt_tokens.len() - 1 {
-            prompt_tokens[pos as usize + 1]
-        } else {
-            sample_argmax(&logits)
-        };
-        pos += 1;
-        if next == 1 {
-            break;
-        }
-        let piece = tokenizer.decode(token as i32, next);
-        text.push_str(&Tokenizer::printable_piece(&piece));
-        tokens.push(next);
-        token = next as u32;
-        if start.is_none() {
-            start = Some(Instant::now());
-        }
+    let mut prev = prompt_tokens[0];
+    for &tok in &out.tokens {
+        let piece = tokenizer.decode(prev, tok);
+        text.push_str(&printable_piece(&piece));
+        prev = tok;
     }
-
-    let elapsed = start.map(|s| s.elapsed().as_secs_f64()).unwrap_or(0.0);
-    let gen_tokens = pos.saturating_sub(1) as f64;
-    let tokens_per_second = if elapsed > 0.0 {
-        gen_tokens / elapsed
-    } else {
-        0.0
-    };
 
     Ok(GenerateOutput {
         text,
-        tokens,
-        prompt_tokens: prompt_tokens.len(),
+        tokens: out.tokens,
+        prompt_tokens: out.prompt_tokens,
         worker_records: model.replay_stats().records,
-        tokens_per_second,
+        tokens_per_second: out.tokens_per_second,
     })
 }

@@ -1,11 +1,10 @@
 # llama3.goldy
 
-FP32 TinyStories generator on [Goldy](https://github.com/koubaa/goldy), replicating [`llama3.cuda`](https://github.com/likejazz/llama3.cuda) commit `424333d1651d2b0fc17d38e9f790e824947e284b`.
+FP32 TinyStories generator on [Ammon](../ammon) / [Goldy](https://github.com/koubaa/goldy), replicating [`llama3.cuda`](https://github.com/likejazz/llama3.cuda) commit `424333d1651d2b0fc17d38e9f790e824947e284b`.
 
-This is **not** Meta Llama 3. The first checkpoint is Karpathy’s 15M TinyStories model (Llama-2-style MHA, RoPE θ=10,000) served through `llama3.cuda`’s layout and greedy loop. Kernels keep `n_kv_heads` generic so a later GQA checkpoint can exercise grouped-query attention. Llama 3 tokenizer / RoPE scaling / GGUF are out of scope.
+This is **not** Meta Llama 3. The first checkpoint is Karpathy’s 15M TinyStories model (Llama-2-style MHA, RoPE θ=10,000) served through `llama3.cuda`’s layout and greedy loop. Ammon’s attention kernel keeps `n_kv_heads` generic so a later GQA checkpoint can exercise grouped-query attention. Llama 3 tokenizer / RoPE scaling / GGUF are out of scope.
 
-There is **no CPU transformer**. Host code loads the checkpoint, tokenizes, uploads a `DecodeStep { token, position }`, and greedy-argmaxes withdrawn logits. All RMSNorm / GEMV / RoPE / attention / SwiGLU / residual math runs in one retained Goldy scheme.
-
+There is **no CPU transformer**. Host code loads the checkpoint, tokenizes, uploads a `DecodeStep { token, position }`, and greedy-argmaxes withdrawn logits. RMSNorm / GEMV / RoPE / attention / SwiGLU live in Ammon; this crate records the Llama graph and the llama2.c packed-blob layout.
 
 ## Assets
 
@@ -49,9 +48,13 @@ Argmax is brittle under FP32 reduction-order differences. If a backend diverges 
 
 ```bash
 cargo test --offline
-cargo test --features cuda --test kernels
 cargo test --features cuda --test generation -- --nocapture
-GOLDY_VALIDATION=api cargo test --features cuda --test kernels -- --nocapture
+```
+
+Kernel algebra lives in Ammon:
+
+```bash
+cargo test --manifest-path ../ammon/Cargo.toml --features cuda --test kernels
 ```
 
 On macOS, use `--features metal` in place of `cuda`. Metal hardware is required for the generation gate; a compile-only build is not a substitute.
@@ -60,8 +63,8 @@ On macOS, use `--features metal` in place of `cuda`. Metal hardware is required 
 
 ## Goldy mapping
 
-- Weights: one retained FP32 `Scattered` blob, layer offsets baked as `with_param`
-- `DecodeStep { token, position }`: small control parcel, **separate** upload `Scheme` + `MemoryExchange` deposit so the worker is never mutated
-- KV cache: persistent buffers; K/V GEMV writes `loff + pos * kv_dim`
+- Weights: one retained FP32 tensor blob; this crate maps llama2.c offsets to `TensorView`s
+- `DecodeStep { token, position }`: Ammon control parcel, **separate** upload `Scheme` + `MemoryExchange` deposit so the worker is never mutated
+- KV cache: persistent tensors; K/V GEMV writes `loff + pos * kv_dim`
 - Worker: unrolled layer graph recorded once (Goldy may add a second record if shader specialization promotes); `topology_records == 0`
 - Logits: `bind_withdraw` after each worker submit

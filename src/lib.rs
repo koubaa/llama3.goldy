@@ -9,7 +9,7 @@ pub mod generate;
 pub mod model;
 
 pub use checkpoint::{
-    Checkpoint, Config, LayerWeightOffsets, LayerWeightViews, ModelShape, WeightLayout, LLAMA3_CUDA_COMMIT,
-    STORIES15M_SHA256,
+    Checkpoint, Config, LayerWeightOffsets, LayerWeightViews, ModelShape, WeightLayout,
+    LLAMA3_CUDA_COMMIT, STORIES15M_SHA256,
 };
 pub use tokenizer::{apply_dream_prompt_patch, printable_piece, Tokenizer};

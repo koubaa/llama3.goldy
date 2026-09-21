@@ -275,11 +275,19 @@ impl WeightLayout {
         Self::packed_view(weights, self.token_embedding, &[shape.vocab, shape.dim])
     }
 
-    pub fn rms_final<'a>(&self, weights: &'a goldy::Tensor, shape: &ModelShape) -> Result<goldy::TensorView<'a>> {
+    pub fn rms_final<'a>(
+        &self,
+        weights: &'a goldy::Tensor,
+        shape: &ModelShape,
+    ) -> Result<goldy::TensorView<'a>> {
         Self::packed_view(weights, self.rms_final_weight, &[shape.dim])
     }
 
-    pub fn classifier<'a>(&self, weights: &'a goldy::Tensor, shape: &ModelShape) -> Result<goldy::TensorView<'a>> {
+    pub fn classifier<'a>(
+        &self,
+        weights: &'a goldy::Tensor,
+        shape: &ModelShape,
+    ) -> Result<goldy::TensorView<'a>> {
         Self::packed_view(weights, self.wcls, &[shape.vocab, shape.dim])
     }
 

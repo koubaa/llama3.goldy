@@ -67,5 +67,5 @@ On macOS, use `--features metal` in place of `cuda`. Metal hardware is required 
 - Graph ops: Ammon kernels only (`TensorKernels` re-exports Goldy add / semantic matmul)
 - `DecodeStep { token, position }`: Ammon control parcel, **separate** upload `Scheme` + `MemoryExchange` deposit so the worker is never mutated
 - KV cache: persistent tensors; each layer records a `[seq_len, n_kv_heads, head_size]` view (no `loff`)
-- Worker: unrolled layer graph recorded once (Goldy may add a second record if shader specialization promotes); `topology_records == 0`
+- Worker: Ammon block schemes included once (`embed`, `layerN/attn`, `layerN/ffn`, `tail`), each ordered with `after`; Goldy may add a second record if shader specialization promotes; `topology_records == 0`
 - Logits: `bind_withdraw` after each worker submit

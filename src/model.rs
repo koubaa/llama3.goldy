@@ -1,45 +1,19 @@
 //! Retained Goldy transformer matching llama3.cuda `forward()`.
+//!
+//! Ammon records each decoder block into its own scheme. This crate includes those
+//! schemes (`embed`, `layerN/attn`, `layerN/ffn`, `tail`) and keeps the upload
+//! exchange on the worker's root.
 
 use crate::checkpoint::{Checkpoint, Config, LayerWeightViews, ModelShape};
+use ammon::blocks::{AttentionSites, Blocks, FfnSites};
 use ammon::gpu::create_runtime;
-use ammon::kernels::{
-    AttentionKernel, DecodeStep, EmbedKernel, GemvKernel, RmsnormInplaceKernel, RmsnormKernel,
-    RopeKernel, SwigluKernel, TensorKernels, DEFAULT_ROPE_THETA,
-};
+use ammon::kernels::DecodeStep;
 use ammon::AutoregressiveModel;
 use anyhow::{Context, Result};
 use goldy::{
-    BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MemoryExchange,
-    ReplayStats, Runtime, Scheme, Tensor, TensorDType, TensorShape, TensorView,
+    BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, GroupId, MemoryExchange,
+    ReplayStats, Runtime, Scheme, SchemeLabel, Tensor, TensorDType, TensorShape, TensorView,
 };
-use std::ops::Shr;
-
-struct PreparedKernels {
-    embed: EmbedKernel,
-    rmsnorm: RmsnormKernel,
-    rmsnorm_inplace: RmsnormInplaceKernel,
-    gemv: GemvKernel,
-    rope: RopeKernel,
-    attention: AttentionKernel,
-    swiglu: SwigluKernel,
-    tensors: TensorKernels,
-}
-
-impl PreparedKernels {
-    fn prepare(runtime: &Runtime) -> Result<Self> {
-        Ok(Self {
-            embed: EmbedKernel::prepare(runtime).context("prepare embed kernel")?,
-            rmsnorm: RmsnormKernel::prepare(runtime).context("prepare rmsnorm kernel")?,
-            rmsnorm_inplace: RmsnormInplaceKernel::prepare(runtime)
-                .context("prepare rmsnorm_inplace kernel")?,
-            gemv: GemvKernel::prepare(runtime).context("prepare gemv kernel")?,
-            rope: RopeKernel::prepare(runtime).context("prepare rope kernel")?,
-            attention: AttentionKernel::prepare(runtime).context("prepare attention kernel")?,
-            swiglu: SwigluKernel::prepare(runtime).context("prepare swiglu kernel")?,
-            tensors: TensorKernels::prepare(runtime).context("prepare tensor kernels")?,
-        })
-    }
-}
 
 struct ModelTensors {
     weights: Tensor,
@@ -104,7 +78,7 @@ impl ModelTensors {
 pub struct Model {
     pub config: Config,
     tensors: ModelTensors,
-    _kernels: PreparedKernels,
+    _blocks: Blocks,
     worker: Scheme,
     upload: Scheme,
     deposit: DepositTransaction,
@@ -125,40 +99,42 @@ impl Model {
         let config = checkpoint.config;
         let shape = config.shape();
         let layout = checkpoint.layout;
-        let mut kernels = PreparedKernels::prepare(&runtime)?;
+        let mut blocks = Blocks::prepare(&runtime)?;
         let buffers = ModelTensors::allocate(runtime.clone(), checkpoint, &shape)?;
 
         let mut worker = Scheme::new(&ctx);
-        kernels
-            .embed
-            .record(
-                &mut worker,
-                "embed",
-                layout.embedding(&buffers.weights, &shape)?,
-                &buffers.step,
-                buffers.x.view(),
-            )?
-            .over_tensor(&buffers.x.view());
+        let mut embed = Scheme::new(&ctx);
+        blocks.record_embed(
+            &mut embed,
+            layout.embedding(&buffers.weights, &shape)?,
+            &buffers.step,
+            buffers.x.view(),
+        )?;
+        let mut prev = include_group(&mut worker, "embed", &embed, None)?;
 
         for layer in 0..shape.n_layers as usize {
             let views = layout.layer_views(&buffers.weights, layer, &shape)?;
-            record_layer(&mut worker, &mut kernels, &buffers, &shape, &views, layer)?;
+            prev = include_layer(
+                &mut worker,
+                &ctx,
+                &mut blocks,
+                &buffers,
+                &shape,
+                &views,
+                layer,
+                prev,
+            )?;
         }
 
-        let rms_final = layout.rms_final(&buffers.weights, &shape)?;
-        kernels
-            .rmsnorm_inplace
-            .record(&mut worker, "rmsnorm_final", buffers.x.view(), rms_final)?
-            .groups([1, 1, 1]);
-
-        record_gemv(
-            &mut kernels,
-            &mut worker,
-            "classifier",
+        let mut tail = Scheme::new(&ctx);
+        blocks.record_logits(
+            &mut tail,
             buffers.x.view(),
+            layout.rms_final(&buffers.weights, &shape)?,
             layout.classifier(&buffers.weights, &shape)?,
             buffers.logits.view(),
         )?;
+        include_group(&mut worker, "tail", &tail, Some(prev))?;
 
         let memory = MemoryExchange::new(&ctx);
 
@@ -171,7 +147,7 @@ impl Model {
         Ok(Self {
             config,
             tensors: buffers,
-            _kernels: kernels,
+            _blocks: blocks,
             worker,
             upload,
             deposit,
@@ -238,214 +214,63 @@ fn layer_kv_cache<'a>(
         .map_err(|e| anyhow::anyhow!("{e}"))
 }
 
-fn att_heads<'a>(att: &'a Tensor, shape: &ModelShape) -> Result<TensorView<'a>> {
-    att.view()
-        .reshape(&[shape.n_heads, shape.seq_len])
-        .map_err(|e| anyhow::anyhow!("{e}"))
-}
-
-fn q_heads<'a>(q: &'a Tensor, shape: &ModelShape) -> Result<TensorView<'a>> {
-    q.view()
-        .reshape(&[shape.n_heads, shape.head_size])
-        .map_err(|e| anyhow::anyhow!("{e}"))
-}
-
-fn view_dim(view: TensorView<'_>, axis: usize) -> Result<u32> {
-    view.shape()
-        .dim(axis)
-        .map_err(|e| anyhow::anyhow!("{e}"))
-}
-
-fn record_gemv(
-    kernels: &mut PreparedKernels,
+fn include_group(
     worker: &mut Scheme,
-    label: impl Into<String>,
-    x: TensorView<'_>,
-    w: TensorView<'_>,
-    out: TensorView<'_>,
-) -> Result<()> {
-    kernels.tensors.matmul_into(worker, label, w, x, out)
+    label: impl Into<SchemeLabel>,
+    child: &Scheme,
+    after: Option<GroupId>,
+) -> Result<GroupId> {
+    let included = worker.include(label, child)?;
+    Ok(match after {
+        Some(prev) => included.after(prev).finish(),
+        None => included.finish(),
+    })
 }
 
-fn record_layer(
+fn include_layer(
     worker: &mut Scheme,
-    kernels: &mut PreparedKernels,
+    ctx: &GpuContext,
+    blocks: &mut Blocks,
     buffers: &ModelTensors,
     shape: &ModelShape,
     weights: &LayerWeightViews<'_>,
     layer: usize,
-) -> Result<()> {
-    record_attention_block(worker, kernels, buffers, shape, weights, layer)?;
-    record_ffn_block(worker, kernels, buffers, shape, weights, layer)
-}
-
-fn record_attention_block(
-    worker: &mut Scheme,
-    kernels: &mut PreparedKernels,
-    buffers: &ModelTensors,
-    shape: &ModelShape,
-    weights: &LayerWeightViews<'_>,
-    layer: usize,
-) -> Result<()> {
-    let key_layer = layer_kv_cache(&buffers.key_cache, layer, shape)?;
-    let value_layer = layer_kv_cache(&buffers.value_cache, layer, shape)?;
-    let att = att_heads(&buffers.att, shape)?;
-    let q = q_heads(&buffers.q, shape)?;
-    let xb_heads = q_heads(&buffers.xb, shape)?;
-    let kv_width = view_dim(weights.wk, 0)?;
-    let n_q_heads = view_dim(q, 0)?;
-
-    kernels
-        .rmsnorm
-        .record(
-            worker,
-            format!("rmsnorm_att_{layer}"),
-            buffers.x.view(),
-            weights.rms_att,
-            buffers.xb.view(),
-        )?
-        .groups([1, 1, 1]);
-
-    record_gemv(
-        kernels,
-        worker,
-        format!("wq_{layer}"),
-        buffers.xb.view(),
-        weights.wq,
-        buffers.q.view(),
+    prev: GroupId,
+) -> Result<GroupId> {
+    let mut attn = Scheme::new(ctx);
+    blocks.record_attention(
+        &mut attn,
+        AttentionSites {
+            x: buffers.x.view(),
+            xb: buffers.xb.view(),
+            xb2: buffers.xb2.view(),
+            q: buffers.q.view(),
+            att: buffers.att.view(),
+            key: layer_kv_cache(&buffers.key_cache, layer, shape)?,
+            value: layer_kv_cache(&buffers.value_cache, layer, shape)?,
+            step: &buffers.step,
+            rms: weights.rms_att,
+            wq: weights.wq,
+            wk: weights.wk,
+            wv: weights.wv,
+            wo: weights.wo,
+        },
     )?;
+    let attn = include_group(worker, format!("layer{layer}/attn"), &attn, Some(prev))?;
 
-    kernels
-        .gemv
-        .record(
-            worker,
-            format!("wk_{layer}"),
-            buffers.xb.view(),
-            weights.wk,
-            key_layer,
-            &buffers.step,
-        )?
-        .over_1d(kv_width);
-
-    kernels
-        .gemv
-        .record(
-            worker,
-            format!("wv_{layer}"),
-            buffers.xb.view(),
-            weights.wv,
-            value_layer,
-            &buffers.step,
-        )?
-        .over_1d(view_dim(weights.wv, 0)?);
-
-    kernels
-        .rope
-        .record(
-            worker,
-            format!("rope_{layer}"),
-            q,
-            key_layer,
-            &buffers.step,
-            DEFAULT_ROPE_THETA,
-        )?
-        .over_1d((q.numel_u32() / 2).max(1));
-
-    kernels
-        .attention
-        .record(
-            worker,
-            format!("attn_{layer}"),
-            q,
-            att,
-            xb_heads,
-            key_layer,
-            value_layer,
-            &buffers.step,
-        )?
-        .groups([n_q_heads, 1, 1]);
-
-    record_gemv(
-        kernels,
-        worker,
-        format!("wo_{layer}"),
-        buffers.xb.view(),
-        weights.wo,
-        buffers.xb2.view(),
+    let mut ffn = Scheme::new(ctx);
+    blocks.record_ffn(
+        &mut ffn,
+        FfnSites {
+            x: buffers.x.view(),
+            xb: buffers.xb.view(),
+            hb: buffers.hb.view(),
+            hb2: buffers.hb2.view(),
+            rms: weights.rms_ffn,
+            w1: weights.w1,
+            w2: weights.w2,
+            w3: weights.w3,
+        },
     )?;
-
-    kernels.tensors.add_into(
-        worker,
-        format!("residual_att_{layer}"),
-        buffers.x.view(),
-        buffers.xb2.view(),
-        buffers.x.view(),
-    )?;
-    Ok(())
-}
-
-fn record_ffn_block(
-    worker: &mut Scheme,
-    kernels: &mut PreparedKernels,
-    buffers: &ModelTensors,
-    _shape: &ModelShape,
-    weights: &LayerWeightViews<'_>,
-    layer: usize,
-) -> Result<()> {
-    kernels
-        .rmsnorm
-        .record(
-            worker,
-            format!("rmsnorm_ffn_{layer}"),
-            buffers.x.view(),
-            weights.rms_ffn,
-            buffers.xb.view(),
-        )?
-        .groups([1, 1, 1]);
-
-    record_gemv(
-        kernels,
-        worker,
-        format!("w1_{layer}"),
-        buffers.xb.view(),
-        weights.w1,
-        buffers.hb.view(),
-    )?;
-
-    record_gemv(
-        kernels,
-        worker,
-        format!("w3_{layer}"),
-        buffers.xb.view(),
-        weights.w3,
-        buffers.hb2.view(),
-    )?;
-
-    kernels
-        .swiglu
-        .record(
-            worker,
-            format!("swiglu_{layer}"),
-            buffers.hb.view(),
-            buffers.hb2.view(),
-        )?
-        .over_tensor(&buffers.hb.view());
-
-    record_gemv(
-        kernels,
-        worker,
-        format!("w2_{layer}"),
-        buffers.hb.view(),
-        weights.w2,
-        buffers.xb.view(),
-    )?;
-
-    kernels.tensors.add_into(
-        worker,
-        format!("residual_ffn_{layer}"),
-        buffers.x.view(),
-        buffers.xb.view(),
-        buffers.x.view(),
-    )?;
-    Ok(())
+    include_group(worker, format!("layer{layer}/ffn"), &ffn, Some(attn))
 }

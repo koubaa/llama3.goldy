@@ -78,7 +78,6 @@ impl ModelTensors {
 pub struct Model {
     pub config: Config,
     tensors: ModelTensors,
-    _blocks: Blocks,
     worker: Scheme,
     upload: Scheme,
     deposit: DepositTransaction,
@@ -99,7 +98,7 @@ impl Model {
         let config = checkpoint.config;
         let shape = config.shape();
         let layout = checkpoint.layout;
-        let mut blocks = Blocks::prepare(&runtime)?;
+        let blocks = Blocks::prepare(&runtime)?;
         let buffers = ModelTensors::allocate(runtime.clone(), checkpoint, &shape)?;
 
         let mut worker = Scheme::new(&ctx);
@@ -117,7 +116,7 @@ impl Model {
             prev = include_layer(
                 &mut worker,
                 &ctx,
-                &mut blocks,
+                &blocks,
                 &buffers,
                 &shape,
                 &views,
@@ -147,7 +146,6 @@ impl Model {
         Ok(Self {
             config,
             tensors: buffers,
-            _blocks: blocks,
             worker,
             upload,
             deposit,
@@ -230,7 +228,7 @@ fn include_group(
 fn include_layer(
     worker: &mut Scheme,
     ctx: &GpuContext,
-    blocks: &mut Blocks,
+    blocks: &Blocks,
     buffers: &ModelTensors,
     shape: &ModelShape,
     weights: &LayerWeightViews<'_>,

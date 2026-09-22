@@ -4,7 +4,7 @@ FP32 TinyStories generator on [Ammon](../ammon) / [Goldy](https://github.com/kou
 
 This is **not** Meta Llama 3. The first checkpoint is Karpathy’s 15M TinyStories model (Llama-2-style MHA, RoPE θ=10,000) served through `llama3.cuda`’s layout and greedy loop. Ammon’s attention kernel keeps `n_kv_heads` generic so a later GQA checkpoint can exercise grouped-query attention. Llama 3 tokenizer / RoPE scaling / GGUF are out of scope.
 
-There is **no CPU transformer**. Host code loads the checkpoint, tokenizes, uploads a `DecodeStep { token, position }`, and greedy-argmaxes withdrawn logits. RMSNorm / GEMV / RoPE / attention / SwiGLU live in Ammon; this crate records the Llama graph and the llama2.c packed-blob layout.
+There is **no CPU transformer**. Host code loads the checkpoint, tokenizes, tenders a `DecodeStep { token, position }` on the worker deposit, and greedy-argmaxes claimed logits. RMSNorm / GEMV / RoPE / attention / SwiGLU live in Ammon; this crate records the Llama graph and the llama2.c packed-blob layout.
 
 ## Assets
 
@@ -65,7 +65,7 @@ On macOS, use `--features metal` in place of `cuda`. Metal hardware is required 
 
 - Weights: one retained FP32 tensor blob; this crate maps llama2.c offsets to `TensorView`s
 - Graph ops: Ammon kernels only (`TensorKernels` re-exports Goldy add / semantic matmul)
-- `DecodeStep { token, position }`: Ammon control parcel, **separate** upload `Scheme` + `MemoryExchange` deposit so the worker is never mutated
+- `DecodeStep { token, position }`: Ammon control parcel; `MemoryExchange` deposit on the worker root (before include). Tender with `<<` each step; one `worker.submit()`
 - KV cache: persistent tensors; each layer records a `[seq_len, n_kv_heads, head_size]` view (no `loff`)
 - Worker: Ammon block schemes included once (`embed`, `layerN/attn`, `layerN/ffn`, `tail`), each ordered with `after`; Goldy may add a second record if shader specialization promotes; `topology_records == 0`
-- Logits: `bind_withdraw` after each worker submit
+- Logits: host claim `(&mut submission >> logits).take::<f32>()` after each worker submit

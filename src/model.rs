@@ -1,8 +1,8 @@
 //! Retained Goldy transformer matching llama3.cuda `forward()`.
 //!
 //! Ammon records each decoder block into its own scheme. This crate includes those
-//! schemes (`embed`, `layerN/attn`, `layerN/ffn`, `tail`) and keeps the upload
-//! exchange on the worker's root.
+//! schemes (`embed`, `layerN/attn`, `layerN/ffn`, `tail`) and binds the `DecodeStep`
+//! deposit on the worker root (before include).
 
 use crate::checkpoint::{Checkpoint, Config, LayerWeightViews, ModelShape};
 use ammon::blocks::{AttentionSites, Blocks, FfnSites};
@@ -79,7 +79,6 @@ pub struct Model {
     pub config: Config,
     tensors: ModelTensors,
     worker: Scheme,
-    upload: Scheme,
     deposit: DepositTransaction,
 }
 
@@ -102,6 +101,11 @@ impl Model {
         let buffers = ModelTensors::allocate(runtime.clone(), checkpoint, &shape)?;
 
         let mut worker = Scheme::new(&ctx);
+        let deposit = MemoryExchange::new(&ctx).bind_deposit(
+            &mut worker,
+            DepositTarget::buffer_elements::<DecodeStep>(&buffers.step, 1),
+        )?;
+
         let mut embed = Scheme::new(&ctx);
         blocks.record_embed(
             &mut embed,
@@ -135,32 +139,19 @@ impl Model {
         )?;
         include_group(&mut worker, "tail", &tail, Some(prev))?;
 
-        let memory = MemoryExchange::new(&ctx);
-
-        let mut upload = Scheme::new(&ctx);
-        let deposit = memory.bind_deposit(
-            &mut upload,
-            DepositTarget::buffer_elements::<DecodeStep>(&buffers.step, 1),
-        )?;
-
         Ok(Self {
             config,
             tensors: buffers,
             worker,
-            upload,
             deposit,
         })
     }
 
     pub fn step(&mut self, token: u32, pos: u32) -> Result<Vec<f32>> {
-        self.deposit.write_data(
-            0,
-            &[DecodeStep {
-                token,
-                position: pos,
-            }],
-        )?;
-        let _ = self.upload.submit()?;
+        (&self.deposit << &DecodeStep {
+            token,
+            position: pos,
+        })?;
         let mut submission = self.worker.submit()?;
         let logits = (&mut submission >> self.tensors.logits.buffer())
             .take::<f32>()

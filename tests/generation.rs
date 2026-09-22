@@ -46,7 +46,7 @@ fn stories15m_i_have_a_dream() {
     );
     assert_eq!(
         stats.topology_records, 0,
-        "upload scheme must not dirty worker topology"
+        "DecodeStep deposit must not dirty worker topology"
     );
     assert!(
         stats.records <= 2,

@@ -220,10 +220,6 @@ impl AutoregressiveModel for Model {
     }
 }
 
-fn leak(s: String) -> &'static str {
-    Box::leak(s.into_boxed_str())
-}
-
 fn layer_kv_cache<'a>(
     cache: &'a Tensor,
     layer: usize,
@@ -303,7 +299,7 @@ fn record_attention_block(
         .rmsnorm
         .record(
             worker,
-            leak(format!("rmsnorm_att_{layer}")),
+            format!("rmsnorm_att_{layer}"),
             buffers.x.view(),
             weights.rms_att,
             buffers.xb.view(),
@@ -323,7 +319,7 @@ fn record_attention_block(
         .gemv
         .record(
             worker,
-            leak(format!("wk_{layer}")),
+            format!("wk_{layer}"),
             buffers.xb.view(),
             weights.wk,
             key_layer,
@@ -335,7 +331,7 @@ fn record_attention_block(
         .gemv
         .record(
             worker,
-            leak(format!("wv_{layer}")),
+            format!("wv_{layer}"),
             buffers.xb.view(),
             weights.wv,
             value_layer,
@@ -347,7 +343,7 @@ fn record_attention_block(
         .rope
         .record(
             worker,
-            leak(format!("rope_{layer}")),
+            format!("rope_{layer}"),
             q,
             key_layer,
             &buffers.step,
@@ -359,7 +355,7 @@ fn record_attention_block(
         .attention
         .record(
             worker,
-            leak(format!("attn_{layer}")),
+            format!("attn_{layer}"),
             q,
             att,
             xb_heads,
@@ -400,7 +396,7 @@ fn record_ffn_block(
         .rmsnorm
         .record(
             worker,
-            leak(format!("rmsnorm_ffn_{layer}")),
+            format!("rmsnorm_ffn_{layer}"),
             buffers.x.view(),
             weights.rms_ffn,
             buffers.xb.view(),
@@ -429,7 +425,7 @@ fn record_ffn_block(
         .swiglu
         .record(
             worker,
-            leak(format!("swiglu_{layer}")),
+            format!("swiglu_{layer}"),
             buffers.hb.view(),
             buffers.hb2.view(),
         )?

@@ -11,8 +11,8 @@ use anyhow::{Context, Result};
 use goldy::{
     BufferKind, Context as GpuContext, DepositTarget, DepositTransaction, MemoryExchange,
     ReplayStats, Runtime, Scheme, Tensor, TensorDType, TensorShape, TensorView,
-    WithdrawTransaction,
 };
+use std::ops::Shr;
 
 struct PreparedKernels {
     embed: EmbedKernel,
@@ -103,12 +103,11 @@ impl ModelTensors {
 
 pub struct Model {
     pub config: Config,
-    _tensors: ModelTensors,
+    tensors: ModelTensors,
     _kernels: PreparedKernels,
     worker: Scheme,
     upload: Scheme,
     deposit: DepositTransaction,
-    withdraw: WithdrawTransaction,
 }
 
 impl Model {
@@ -162,7 +161,6 @@ impl Model {
         )?;
 
         let memory = MemoryExchange::new(&ctx);
-        let withdraw = memory.bind_withdraw(&mut worker, buffers.logits.buffer())?;
 
         let mut upload = Scheme::new(&ctx);
         let deposit = memory.bind_deposit(
@@ -172,12 +170,11 @@ impl Model {
 
         Ok(Self {
             config,
-            _tensors: buffers,
+            tensors: buffers,
             _kernels: kernels,
             worker,
             upload,
             deposit,
-            withdraw,
         })
     }
 
@@ -191,15 +188,17 @@ impl Model {
         )?;
         let _ = self.upload.submit()?;
         let mut submission = self.worker.submit()?;
-        let bytes = self.withdraw.claim(&mut submission)?.consume()?;
-        let logits: &[f32] = bytemuck::cast_slice(&bytes);
+        let logits = (&mut submission >> self.tensors.logits.buffer())
+            .take::<f32>()
+            .map_err(|e| anyhow::anyhow!("{e}"))?
+            .to_vec();
         anyhow::ensure!(
             logits.len() == self.config.vocab_size(),
             "logit withdraw size {} != vocab {}",
             logits.len(),
             self.config.vocab_size()
         );
-        Ok(logits.to_vec())
+        Ok(logits)
     }
 
     pub fn replay_stats(&self) -> ReplayStats {
@@ -232,15 +231,32 @@ fn layer_kv_cache<'a>(
 ) -> Result<TensorView<'a>> {
     cache
         .view()
-        .reshape(&[shape.n_layers, shape.seq_len, shape.kv_dim])
+        .reshape(&[
+            shape.n_layers,
+            shape.seq_len,
+            shape.n_kv_heads,
+            shape.head_size,
+        ])
         .and_then(|v| v.narrow(0, layer as u32, 1))
-        .and_then(|v| v.reshape(&[shape.seq_len, shape.kv_dim]))
+        .and_then(|v| v.reshape(&[shape.seq_len, shape.n_kv_heads, shape.head_size]))
         .map_err(|e| anyhow::anyhow!("{e}"))
 }
 
 fn att_heads<'a>(att: &'a Tensor, shape: &ModelShape) -> Result<TensorView<'a>> {
     att.view()
         .reshape(&[shape.n_heads, shape.seq_len])
+        .map_err(|e| anyhow::anyhow!("{e}"))
+}
+
+fn q_heads<'a>(q: &'a Tensor, shape: &ModelShape) -> Result<TensorView<'a>> {
+    q.view()
+        .reshape(&[shape.n_heads, shape.head_size])
+        .map_err(|e| anyhow::anyhow!("{e}"))
+}
+
+fn view_dim(view: TensorView<'_>, axis: usize) -> Result<u32> {
+    view.shape()
+        .dim(axis)
         .map_err(|e| anyhow::anyhow!("{e}"))
 }
 
@@ -278,6 +294,10 @@ fn record_attention_block(
     let key_layer = layer_kv_cache(&buffers.key_cache, layer, shape)?;
     let value_layer = layer_kv_cache(&buffers.value_cache, layer, shape)?;
     let att = att_heads(&buffers.att, shape)?;
+    let q = q_heads(&buffers.q, shape)?;
+    let xb_heads = q_heads(&buffers.xb, shape)?;
+    let kv_width = view_dim(weights.wk, 0)?;
+    let n_q_heads = view_dim(q, 0)?;
 
     kernels
         .rmsnorm
@@ -309,7 +329,7 @@ fn record_attention_block(
             key_layer,
             &buffers.step,
         )?
-        .over_1d(shape.kv_dim);
+        .over_1d(kv_width);
 
     kernels
         .gemv
@@ -321,36 +341,33 @@ fn record_attention_block(
             value_layer,
             &buffers.step,
         )?
-        .over_1d(shape.kv_dim);
+        .over_1d(view_dim(weights.wv, 0)?);
 
     kernels
         .rope
         .record(
             worker,
             leak(format!("rope_{layer}")),
-            buffers.q.view(),
+            q,
             key_layer,
             &buffers.step,
-            shape.head_size,
             DEFAULT_ROPE_THETA,
         )?
-        .over_1d((shape.dim / 2).max(1));
+        .over_1d((q.numel_u32() / 2).max(1));
 
     kernels
         .attention
         .record(
             worker,
             leak(format!("attn_{layer}")),
-            buffers.q.view(),
+            q,
             att,
-            buffers.xb.view(),
+            xb_heads,
             key_layer,
             value_layer,
             &buffers.step,
-            shape.kv_mul,
-            shape.head_size,
         )?
-        .groups([shape.n_heads, 1, 1]);
+        .groups([n_q_heads, 1, 1]);
 
     record_gemv(
         kernels,

@@ -65,7 +65,7 @@ On macOS, use `--features metal` in place of `cuda`. Metal hardware is required 
 
 - Weights: one retained FP32 tensor blob; this crate maps llama2.c offsets to `TensorView`s
 - Graph ops: Ammon kernels only (`TensorKernels` re-exports Goldy add / semantic matmul)
-- `DecodeStep { token, position }`: Ammon control parcel; `MemoryExchange` deposit on the worker root (before include). Tender with `<<` each step; one `worker.submit()`
+- `DecodeStep { token, position }`: Ammon control parcel; `MemoryExchange` deposit on the worker root. Tender with `<<` each step; one `worker.submit()`
 - KV cache: persistent tensors; each layer records a `[seq_len, n_kv_heads, head_size]` view (no `loff`)
-- Worker: Ammon block schemes included once (`embed`, `layerN/attn`, `layerN/ffn`, `tail`), each ordered with `after`; Goldy may add a second record if shader specialization promotes; `topology_records == 0`
-- Logits: host claim `(&mut submission >> logits).take::<f32>()` after each worker submit
+- Worker: Ammon records named groups once (`embed`, `layerN/attn`, `layerN/ffn`, `tail`); parcel accesses derive their ordering. Goldy may add a second record if shader specialization promotes; `topology_records == 0`
+- Logits: host claim `(&mut submission >> logits).take::<f32>()` after each worker submit; generation samples the `HostView` without another allocation

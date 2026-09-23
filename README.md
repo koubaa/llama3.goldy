@@ -64,7 +64,7 @@ On macOS, use `--features metal` in place of `cuda`. Metal hardware is required 
 ## Goldy mapping
 
 - Weights: one retained FP32 tensor blob; this crate maps llama2.c offsets to `AttentionWeights` / `SwiGluWeights`
-- Graph ops: Ammon modules (`CausalSelfAttention`, `SwiGluMlp`) plus `Blocks` embed/logits; kernels stay inside Ammon
+- Graph ops: Ammon modules (`Embedding`, `CausalSelfAttention`, `SwiGluMlp`, `RmsNorm`, `Linear`); kernels stay inside Ammon
 - `DecodeStep { token, position }`: Ammon control parcel (`DecodeStep::parcel` / `deposit_target`); `MemoryExchange` deposit on the worker root. Tender with `<<` each step; one `worker.submit()`
 - KV cache: Ammon `KvCache`; each layer is `[seq_len, n_kv_heads, head_size]` (no `loff`)
 - Worker: Ammon records named groups once (`embed`, `layerN/attn`, `layerN/ffn`, `tail`); parcel accesses derive their ordering. Goldy may add a second record if shader specialization promotes; `topology_records == 0`

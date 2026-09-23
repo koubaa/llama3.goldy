@@ -8,13 +8,12 @@ use crate::checkpoint::{Checkpoint, Config, ModelShape};
 use ammon::gpu::create_runtime;
 use ammon::kernels::DecodeStep;
 use ammon::AutoregressiveModel;
-use ammon::{Blocks, CausalSelfAttention, KvCache, SwiGluMlp};
+use ammon::{CausalSelfAttention, Embedding, KvCache, Linear, RmsNorm, SwiGluMlp};
 use anyhow::{Context, Result};
 use goldy::{
     DepositTransaction, HostView, MemoryExchange, ReplayStats, Runtime, Scheme, Tensor,
     TensorDType, TensorShape,
 };
-use std::sync::Arc;
 
 struct ModelTensors {
     weights: Tensor,
@@ -37,9 +36,8 @@ impl ModelTensors {
     }
 }
 
-/// Scratch and kernels the worker retains. Kept alive for the scheme lifetime.
+/// Scratch the worker retains. Kept alive for the scheme lifetime.
 struct DecoderModules {
-    _blocks: Arc<Blocks>,
     attention: CausalSelfAttention,
     mlp: SwiGluMlp,
     cache: KvCache,
@@ -47,16 +45,9 @@ struct DecoderModules {
 
 impl DecoderModules {
     fn allocate(runtime: &Runtime, shape: &ModelShape) -> Result<Self> {
-        let blocks = Arc::new(Blocks::prepare(runtime)?);
         Ok(Self {
-            attention: CausalSelfAttention::with_blocks(
-                runtime,
-                Arc::clone(&blocks),
-                shape.dim,
-                shape.n_heads,
-                shape.seq_len,
-            )?,
-            mlp: SwiGluMlp::with_blocks(runtime, Arc::clone(&blocks), shape.dim, shape.hidden_dim)?,
+            attention: CausalSelfAttention::new(runtime, shape.dim, shape.n_heads, shape.seq_len)?,
+            mlp: SwiGluMlp::new(runtime, shape.dim, shape.hidden_dim)?,
             cache: KvCache::new(
                 runtime,
                 shape.n_layers,
@@ -64,7 +55,6 @@ impl DecoderModules {
                 shape.n_kv_heads,
                 shape.head_size,
             )?,
-            _blocks: blocks,
         })
     }
 }
@@ -80,36 +70,31 @@ pub struct Model {
 impl Model {
     pub fn load(checkpoint: &Checkpoint) -> Result<Self> {
         let runtime = create_runtime()?;
-        Self::load_on(runtime, checkpoint)
+        Self::load_on(&runtime, checkpoint)
     }
 
-    pub fn load_on(runtime: Runtime, checkpoint: &Checkpoint) -> Result<Self> {
+    pub fn load_on(runtime: &Runtime, checkpoint: &Checkpoint) -> Result<Self> {
         let ctx = runtime.create_context().context("create GPU context")?;
-        Self::build(runtime, ctx, checkpoint)
-    }
-
-    fn build(runtime: Runtime, ctx: goldy::Context, checkpoint: &Checkpoint) -> Result<Self> {
         let config = checkpoint.config;
         let shape = config.shape();
         let layout = checkpoint.layout;
-        let modules = DecoderModules::allocate(&runtime, &shape)?;
-        let tensors = ModelTensors::allocate(&runtime, checkpoint, &shape)?;
+        let modules = DecoderModules::allocate(runtime, &shape)?;
+        let tensors = ModelTensors::allocate(runtime, checkpoint, &shape)?;
 
         let mut worker = Scheme::new(&ctx);
         let deposit = MemoryExchange::new(&ctx)
             .bind_deposit(&mut worker, DecodeStep::deposit_target(&tensors.step))?;
 
-        let embedding = layout.embedding(&tensors.weights, &shape)?;
-        modules._blocks.record_embed_group(
+        Embedding::new(runtime)?.record_group(
             &mut worker,
             "embed",
-            embedding,
+            layout.embedding(&tensors.weights, &shape)?,
             &tensors.step,
             tensors.x.view(),
         )?;
 
-        for layer in 0..shape.n_layers as usize {
-            let weights = layout.layer(&tensors.weights, layer, &shape)?;
+        for layer in 0..shape.n_layers {
+            let weights = layout.layer(&tensors.weights, layer as usize, &shape)?;
             modules.attention.record_group(
                 &mut worker,
                 format!("layer{layer}/attn"),
@@ -128,14 +113,12 @@ impl Model {
 
         let rms_final = layout.rms_final(&tensors.weights, &shape)?;
         let classifier = layout.classifier(&tensors.weights, &shape)?;
-        modules._blocks.record_logits_group(
-            &mut worker,
-            "tail",
-            tensors.x.view(),
-            rms_final,
-            classifier,
-            tensors.logits.view(),
-        )?;
+        let norm = RmsNorm::new(runtime)?;
+        let lm_head = Linear::new(runtime)?;
+        worker.group("tail", |scheme| {
+            norm.record_inplace(scheme, tensors.x.view(), rms_final)?;
+            lm_head.record(scheme, classifier, tensors.x.view(), tensors.logits.view())
+        })?;
 
         Ok(Self {
             config,
@@ -157,14 +140,7 @@ impl Model {
         // second copy into staging and waits again. That extra round trip is not interned
         // on the scheme the way the deposit is.
         let claim = &mut submission >> self.tensors.logits.buffer();
-        let logits = claim.take::<f32>()?;
-        anyhow::ensure!(
-            logits.len() == self.config.vocab_size(),
-            "logit withdraw size {} != vocab {}",
-            logits.len(),
-            self.config.vocab_size()
-        );
-        Ok(logits)
+        Ok(claim.take::<f32>()?)
     }
 
     pub fn replay_stats(&self) -> ReplayStats {

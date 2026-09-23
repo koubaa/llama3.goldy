@@ -1,31 +1,24 @@
 //! Retained Goldy transformer matching llama3.cuda `forward()`.
 //!
-//! Ammon records decoder blocks into named groups (`embed`, `layerN/attn`,
+//! Ammon records decoder modules into named groups (`embed`, `layerN/attn`,
 //! `layerN/ffn`, `tail`) on one retained worker. The `DecodeStep` deposit lives on
 //! that submitting root.
 
 use crate::checkpoint::{Checkpoint, Config, LayerWeightViews, ModelShape};
-use ammon::blocks::{AttentionSites, Blocks, FfnSites};
 use ammon::gpu::create_runtime;
 use ammon::kernels::DecodeStep;
 use ammon::AutoregressiveModel;
+use ammon::{AttentionWeights, Blocks, CausalSelfAttention, KvCache, SwiGluMlp, SwiGluWeights};
 use anyhow::{Context, Result};
 use goldy::{
-    BufferKind, DepositTarget, DepositTransaction, GoldyError, HostView, MemoryExchange,
-    ReplayStats, Runtime, Scheme, Tensor, TensorDType, TensorShape, TensorView,
+    BufferKind, DepositTarget, DepositTransaction, HostView, MemoryExchange, ReplayStats, Runtime,
+    Scheme, Tensor, TensorDType, TensorShape,
 };
+use std::sync::Arc;
 
 struct ModelTensors {
     weights: Tensor,
     x: Tensor,
-    xb: Tensor,
-    xb2: Tensor,
-    hb: Tensor,
-    hb2: Tensor,
-    q: Tensor,
-    att: Tensor,
-    key_cache: Tensor,
-    value_cache: Tensor,
     step: goldy::Buffer,
     logits: Tensor,
 }
@@ -38,48 +31,6 @@ impl ModelTensors {
             weights: Tensor::from_f32(runtime, TensorShape::vector(n_weights), &checkpoint.weights)
                 .context("upload weights")?,
             x: Tensor::zeros(runtime, TensorShape::vector(shape.dim), TensorDType::F32)?,
-            xb: Tensor::zeros(runtime, TensorShape::vector(shape.dim), TensorDType::F32)?,
-            xb2: Tensor::zeros(runtime, TensorShape::vector(shape.dim), TensorDType::F32)?,
-            hb: Tensor::zeros(
-                runtime,
-                TensorShape::vector(shape.hidden_dim),
-                TensorDType::F32,
-            )?,
-            hb2: Tensor::zeros(
-                runtime,
-                TensorShape::vector(shape.hidden_dim),
-                TensorDType::F32,
-            )?,
-            q: Tensor::zeros(
-                runtime,
-                TensorShape::from_dims(&[shape.n_heads, shape.head_size])?,
-                TensorDType::F32,
-            )?,
-            att: Tensor::zeros(
-                runtime,
-                TensorShape::from_dims(&[shape.n_heads, shape.seq_len])?,
-                TensorDType::F32,
-            )?,
-            key_cache: Tensor::zeros(
-                runtime,
-                TensorShape::from_dims(&[
-                    shape.n_layers,
-                    shape.seq_len,
-                    shape.n_kv_heads,
-                    shape.head_size,
-                ])?,
-                TensorDType::F32,
-            )?,
-            value_cache: Tensor::zeros(
-                runtime,
-                TensorShape::from_dims(&[
-                    shape.n_layers,
-                    shape.seq_len,
-                    shape.n_kv_heads,
-                    shape.head_size,
-                ])?,
-                TensorDType::F32,
-            )?,
             step: runtime.acquire_buffer_with_data(
                 &[DecodeStep {
                     token: 0,
@@ -92,9 +43,42 @@ impl ModelTensors {
     }
 }
 
+/// Scratch and kernels the worker retains. Kept alive for the scheme lifetime.
+struct DecoderModules {
+    _blocks: Arc<Blocks>,
+    attention: CausalSelfAttention,
+    mlp: SwiGluMlp,
+    cache: KvCache,
+}
+
+impl DecoderModules {
+    fn allocate(runtime: &Runtime, shape: &ModelShape) -> Result<Self> {
+        let blocks = Arc::new(Blocks::prepare(runtime)?);
+        Ok(Self {
+            attention: CausalSelfAttention::with_blocks(
+                runtime,
+                Arc::clone(&blocks),
+                shape.dim,
+                shape.n_heads,
+                shape.seq_len,
+            )?,
+            mlp: SwiGluMlp::with_blocks(runtime, Arc::clone(&blocks), shape.dim, shape.hidden_dim)?,
+            cache: KvCache::new(
+                runtime,
+                shape.n_layers,
+                shape.seq_len,
+                shape.n_kv_heads,
+                shape.head_size,
+            )?,
+            _blocks: blocks,
+        })
+    }
+}
+
 pub struct Model {
     pub config: Config,
     tensors: ModelTensors,
+    _modules: DecoderModules,
     worker: Scheme,
     deposit: DepositTransaction,
 }
@@ -114,40 +98,57 @@ impl Model {
         let config = checkpoint.config;
         let shape = config.shape();
         let layout = checkpoint.layout;
-        let blocks = Blocks::prepare(&runtime)?;
-        let buffers = ModelTensors::allocate(&runtime, checkpoint, &shape)?;
+        let modules = DecoderModules::allocate(&runtime, &shape)?;
+        let tensors = ModelTensors::allocate(&runtime, checkpoint, &shape)?;
 
         let mut worker = Scheme::new(&ctx);
         let deposit = MemoryExchange::new(&ctx).bind_deposit(
             &mut worker,
-            DepositTarget::buffer_elements::<DecodeStep>(&buffers.step, 1),
+            DepositTarget::buffer_elements::<DecodeStep>(&tensors.step, 1),
         )?;
 
-        let embedding = layout.embedding(&buffers.weights, &shape)?;
-        worker.group("embed", |embed| {
-            blocks.record_embed(embed, embedding, &buffers.step, buffers.x.view())
-        })?;
+        let embedding = layout.embedding(&tensors.weights, &shape)?;
+        modules._blocks.record_embed_group(
+            &mut worker,
+            "embed",
+            embedding,
+            &tensors.step,
+            tensors.x.view(),
+        )?;
 
         for layer in 0..shape.n_layers as usize {
-            let views = layout.layer_views(&buffers.weights, layer, &shape)?;
-            record_layer(&mut worker, &blocks, &buffers, &shape, &views, layer)?;
+            let views = layout.layer_views(&tensors.weights, layer, &shape)?;
+            modules.attention.record_group(
+                &mut worker,
+                format!("layer{layer}/attn"),
+                tensors.x.view(),
+                attention_weights(&views),
+                modules.cache.layer(layer)?,
+                &tensors.step,
+            )?;
+            modules.mlp.record_group(
+                &mut worker,
+                format!("layer{layer}/ffn"),
+                tensors.x.view(),
+                swiglu_weights(&views),
+            )?;
         }
 
-        let rms_final = layout.rms_final(&buffers.weights, &shape)?;
-        let classifier = layout.classifier(&buffers.weights, &shape)?;
-        worker.group("tail", |tail| {
-            blocks.record_logits(
-                tail,
-                buffers.x.view(),
-                rms_final,
-                classifier,
-                buffers.logits.view(),
-            )
-        })?;
+        let rms_final = layout.rms_final(&tensors.weights, &shape)?;
+        let classifier = layout.classifier(&tensors.weights, &shape)?;
+        modules._blocks.record_logits_group(
+            &mut worker,
+            "tail",
+            tensors.x.view(),
+            rms_final,
+            classifier,
+            tensors.logits.view(),
+        )?;
 
         Ok(Self {
             config,
-            tensors: buffers,
+            tensors,
+            _modules: modules,
             worker,
             deposit,
         })
@@ -189,62 +190,21 @@ impl AutoregressiveModel for Model {
     }
 }
 
-fn layer_kv_cache<'a>(
-    cache: &'a Tensor,
-    layer: usize,
-    shape: &ModelShape,
-) -> Result<TensorView<'a>, GoldyError> {
-    cache
-        .view()
-        .narrow(0, layer as u32, 1)
-        .and_then(|v| v.reshape(&[shape.seq_len, shape.n_kv_heads, shape.head_size]))
+fn attention_weights<'a>(weights: &LayerWeightViews<'a>) -> AttentionWeights<'a> {
+    AttentionWeights {
+        norm: weights.rms_att,
+        query: weights.wq,
+        key: weights.wk,
+        value: weights.wv,
+        output: weights.wo,
+    }
 }
 
-fn record_layer(
-    worker: &mut Scheme,
-    blocks: &Blocks,
-    buffers: &ModelTensors,
-    shape: &ModelShape,
-    weights: &LayerWeightViews<'_>,
-    layer: usize,
-) -> Result<(), GoldyError> {
-    let key = layer_kv_cache(&buffers.key_cache, layer, shape)?;
-    let value = layer_kv_cache(&buffers.value_cache, layer, shape)?;
-    worker.group(format!("layer{layer}/attn"), |attn| {
-        blocks.record_attention(
-            attn,
-            AttentionSites {
-                x: buffers.x.view(),
-                xb: buffers.xb.view(),
-                xb2: buffers.xb2.view(),
-                q: buffers.q.view(),
-                att: buffers.att.view(),
-                key,
-                value,
-                step: &buffers.step,
-                rms: weights.rms_att,
-                wq: weights.wq,
-                wk: weights.wk,
-                wv: weights.wv,
-                wo: weights.wo,
-            },
-        )
-    })?;
-
-    worker.group(format!("layer{layer}/ffn"), |ffn| {
-        blocks.record_ffn(
-            ffn,
-            FfnSites {
-                x: buffers.x.view(),
-                xb: buffers.xb.view(),
-                hb: buffers.hb.view(),
-                hb2: buffers.hb2.view(),
-                rms: weights.rms_ffn,
-                w1: weights.w1,
-                w2: weights.w2,
-                w3: weights.w3,
-            },
-        )
-    })?;
-    Ok(())
+fn swiglu_weights<'a>(weights: &LayerWeightViews<'a>) -> SwiGluWeights<'a> {
+    SwiGluWeights {
+        norm: weights.rms_ffn,
+        gate: weights.w1,
+        up: weights.w3,
+        down: weights.w2,
+    }
 }

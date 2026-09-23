@@ -8,6 +8,9 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
+#[cfg(any(feature = "cuda", feature = "metal"))]
+use ammon::{AttentionWeights, SwiGluWeights};
+
 /// Seven-field little-endian header. Negative `vocab_size` means an untied classifier.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, bytemuck::Pod, bytemuck::Zeroable)]
 #[repr(C)]
@@ -160,18 +163,12 @@ pub struct WeightLayout {
     pub shared_classifier: bool,
 }
 
-/// Named tensor views into the packed FP32 weight blob for one layer.
-#[derive(Debug, Clone, Copy)]
-pub struct LayerWeightViews<'a> {
-    pub rms_att: goldy::TensorView<'a>,
-    pub wq: goldy::TensorView<'a>,
-    pub wk: goldy::TensorView<'a>,
-    pub wv: goldy::TensorView<'a>,
-    pub wo: goldy::TensorView<'a>,
-    pub rms_ffn: goldy::TensorView<'a>,
-    pub w1: goldy::TensorView<'a>,
-    pub w2: goldy::TensorView<'a>,
-    pub w3: goldy::TensorView<'a>,
+/// Attention and MLP weight views for one layer of the packed blob.
+#[cfg(any(feature = "cuda", feature = "metal"))]
+#[derive(Clone, Copy)]
+pub struct LayerWeights<'a> {
+    pub attention: AttentionWeights<'a>,
+    pub mlp: SwiGluWeights<'a>,
 }
 
 impl WeightLayout {
@@ -238,7 +235,7 @@ impl WeightLayout {
         })
     }
 
-    pub fn layer(&self, layer: usize, shape: &ModelShape) -> LayerWeightOffsets {
+    pub fn layer_offsets(&self, layer: usize, shape: &ModelShape) -> LayerWeightOffsets {
         let l = layer as u64;
         let dim = u64::from(shape.dim);
         let hidden = u64::from(shape.hidden_dim);
@@ -291,23 +288,36 @@ impl WeightLayout {
         Self::packed_view(weights, self.wcls, &[shape.vocab, shape.dim])
     }
 
-    pub fn layer_views<'a>(
+    #[cfg(any(feature = "cuda", feature = "metal"))]
+    pub fn layer<'a>(
         &self,
         weights: &'a goldy::Tensor,
         layer: usize,
         shape: &ModelShape,
-    ) -> Result<LayerWeightViews<'a>> {
-        let off = self.layer(layer, shape);
-        Ok(LayerWeightViews {
-            rms_att: Self::packed_view(weights, u64::from(off.rms_att), &[shape.dim])?,
-            wq: Self::packed_view(weights, u64::from(off.wq), &[shape.dim, shape.dim])?,
-            wk: Self::packed_view(weights, u64::from(off.wk), &[shape.kv_dim, shape.dim])?,
-            wv: Self::packed_view(weights, u64::from(off.wv), &[shape.kv_dim, shape.dim])?,
-            wo: Self::packed_view(weights, u64::from(off.wo), &[shape.dim, shape.dim])?,
-            rms_ffn: Self::packed_view(weights, u64::from(off.rms_ffn), &[shape.dim])?,
-            w1: Self::packed_view(weights, u64::from(off.w1), &[shape.hidden_dim, shape.dim])?,
-            w2: Self::packed_view(weights, u64::from(off.w2), &[shape.dim, shape.hidden_dim])?,
-            w3: Self::packed_view(weights, u64::from(off.w3), &[shape.hidden_dim, shape.dim])?,
+    ) -> Result<LayerWeights<'a>> {
+        let off = self.layer_offsets(layer, shape);
+        Ok(LayerWeights {
+            attention: AttentionWeights {
+                norm: Self::packed_view(weights, u64::from(off.rms_att), &[shape.dim])?,
+                query: Self::packed_view(weights, u64::from(off.wq), &[shape.dim, shape.dim])?,
+                key: Self::packed_view(weights, u64::from(off.wk), &[shape.kv_dim, shape.dim])?,
+                value: Self::packed_view(weights, u64::from(off.wv), &[shape.kv_dim, shape.dim])?,
+                output: Self::packed_view(weights, u64::from(off.wo), &[shape.dim, shape.dim])?,
+            },
+            mlp: SwiGluWeights {
+                norm: Self::packed_view(weights, u64::from(off.rms_ffn), &[shape.dim])?,
+                gate: Self::packed_view(
+                    weights,
+                    u64::from(off.w1),
+                    &[shape.hidden_dim, shape.dim],
+                )?,
+                up: Self::packed_view(weights, u64::from(off.w3), &[shape.hidden_dim, shape.dim])?,
+                down: Self::packed_view(
+                    weights,
+                    u64::from(off.w2),
+                    &[shape.dim, shape.hidden_dim],
+                )?,
+            },
         })
     }
 }
@@ -452,7 +462,7 @@ mod tests {
         assert!(layout.shared_classifier);
 
         let shape = cfg.shape();
-        let layer0 = layout.layer(0, &shape);
+        let layer0 = layout.layer_offsets(0, &shape);
         assert_eq!(layer0.rms_att, layout.rms_att_weight as u32);
         assert_eq!(layer0.wq, layout.wq as u32);
         assert_eq!(layer0.w3, layout.w3 as u32);
@@ -464,8 +474,8 @@ mod tests {
         cfg.n_layers = 2;
         let layout = WeightLayout::from_config(&cfg, true).unwrap();
         let shape = cfg.shape();
-        let l0 = layout.layer(0, &shape);
-        let l1 = layout.layer(1, &shape);
+        let l0 = layout.layer_offsets(0, &shape);
+        let l1 = layout.layer_offsets(1, &shape);
         assert_eq!(l1.rms_att, l0.rms_att + shape.dim);
         assert_eq!(l1.wq, l0.wq + shape.dim * shape.dim);
         assert_eq!(l1.wk, l0.wk + shape.dim * shape.kv_dim);

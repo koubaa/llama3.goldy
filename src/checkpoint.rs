@@ -399,12 +399,32 @@ impl Checkpoint {
     }
 }
 
+/// llama2.c tokenizer.bin SHA-256 (shared by every engine).
+pub const TOKENIZER_SHA256: &str =
+    "50a52ef822ee9e83de5ce9d0be0a025a773d019437f58b5ff9dcafb063ece361";
+
 /// Stories15M (Karpathy TinyStories) published SHA-256.
 pub const STORIES15M_SHA256: &str =
     "cd590644d963867a2b6e5a1107f51fad663c41d79c149fbecbbb1f95fa81f49a";
 
+/// Stories42M published SHA-256.
+pub const STORIES42M_SHA256: &str =
+    "9f65a1000e17d0bc167dd6332e0ce5119a0222a3d920cead5bce413bfab2ee7b";
+
+/// Stories110M published SHA-256.
+pub const STORIES110M_SHA256: &str =
+    "515267168726a1ed1317a64a408492e6af3b67c1f71c5bd98c01d9d721803a24";
+
 /// Pinned llama3.cuda commit this crate replicates.
 pub const LLAMA3_CUDA_COMMIT: &str = "424333d1651d2b0fc17d38e9f790e824947e284b";
+
+/// Pinned llama.cpp commit used by the benchmark adapters (read-only `refs/`).
+pub const LLAMA_CPP_COMMIT: &str = "f072b103714dfa1eee531f80b24512faf38e3dd2";
+
+/// On-disk size of a tied-classifier llama2.c checkpoint.
+pub fn checkpoint_file_bytes(layout: &WeightLayout) -> u64 {
+    Config::BYTE_SIZE as u64 + layout.n_floats * 4
+}
 
 #[cfg(test)]
 mod tests {
@@ -530,5 +550,58 @@ mod tests {
         let mut cfg = tiny_config();
         cfg.n_heads = 3;
         assert!(WeightLayout::from_config(&cfg, true).is_err());
+    }
+
+    fn stories_config(
+        dim: i32,
+        hidden_dim: i32,
+        n_layers: i32,
+        n_heads: i32,
+        max_seq_len: i32,
+    ) -> Config {
+        Config {
+            dim,
+            hidden_dim,
+            n_layers,
+            n_heads,
+            n_kv_heads: n_heads,
+            vocab_size: 32000,
+            max_seq_len,
+        }
+    }
+
+    #[test]
+    fn stories15m_tied_blob_size() {
+        let layout = WeightLayout::from_config(&stories_config(288, 768, 6, 6, 256), true).unwrap();
+        assert_eq!(checkpoint_file_bytes(&layout), 60_816_028);
+    }
+
+    #[test]
+    fn stories42m_tied_blob_size() {
+        let layout =
+            WeightLayout::from_config(&stories_config(512, 1376, 8, 8, 1024), true).unwrap();
+        assert_eq!(checkpoint_file_bytes(&layout), 167_020_572);
+    }
+
+    #[test]
+    fn stories110m_tied_blob_size() {
+        let layout =
+            WeightLayout::from_config(&stories_config(768, 2048, 12, 12, 1024), true).unwrap();
+        assert_eq!(checkpoint_file_bytes(&layout), 438_381_596);
+    }
+
+    #[test]
+    fn pinned_asset_hashes_are_sha256() {
+        for h in [
+            TOKENIZER_SHA256,
+            STORIES15M_SHA256,
+            STORIES42M_SHA256,
+            STORIES110M_SHA256,
+        ] {
+            assert_eq!(h.len(), 64, "{h}");
+            assert!(h.chars().all(|c| c.is_ascii_hexdigit()), "{h}");
+        }
+        assert_eq!(LLAMA3_CUDA_COMMIT.len(), 40);
+        assert_eq!(LLAMA_CPP_COMMIT.len(), 40);
     }
 }

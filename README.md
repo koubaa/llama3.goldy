@@ -14,10 +14,12 @@ python tools/fetch_assets.py
 
 | File | Source | SHA-256 |
 |------|--------|---------|
-| `models/stories15M.bin` | [karpathy/tinyllamas](https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin) | `cd590644d963867a2b6e5a1107f51fad663c41d79c149fbecbbb1f95fa81f49a` |
 | `models/tokenizer.bin` | [karpathy/llama2.c](https://github.com/karpathy/llama2.c/raw/master/tokenizer.bin) | `50a52ef822ee9e83de5ce9d0be0a025a773d019437f58b5ff9dcafb063ece361` |
+| `models/stories15M.bin` | [karpathy/tinyllamas](https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin) | `cd590644d963867a2b6e5a1107f51fad663c41d79c149fbecbbb1f95fa81f49a` |
+| `models/stories42M.bin` | [karpathy/tinyllamas](https://huggingface.co/karpathy/tinyllamas/resolve/main/stories42M.bin) | `9f65a1000e17d0bc167dd6332e0ce5119a0222a3d920cead5bce413bfab2ee7b` |
+| `models/stories110M.bin` | [karpathy/tinyllamas](https://huggingface.co/karpathy/tinyllamas/resolve/main/stories110M.bin) | `515267168726a1ed1317a64a408492e6af3b67c1f71c5bd98c01d9d721803a24` |
 
-Both paths are gitignored.
+All four paths are gitignored. The 42M/110M blobs are for the scaling tier in [BENCHMARKS.md](BENCHMARKS.md); `fetch_assets.py --only required` keeps the 15M + tokenizer pair.
 
 ## Run
 

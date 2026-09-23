@@ -136,9 +136,11 @@ impl Model {
         };
         (&self.deposit << &step)?;
         let mut submission = self.worker.submit()?;
-        // `>>` claims mid-flight; `take` waits for the worker then, on CUDA, submits a
-        // second copy into staging and waits again. That extra round trip is not interned
-        // on the scheme the way the deposit is.
+        // `>>` claims mid-flight; `take` waits for prior writers then realizes host-use.
+        // CUDA fills cacheable pinned staging with one producer-stream DtoH, then copies
+        // into the `HostView`. That copy is not interned on the scheme the way the deposit
+        // is. Eager sink analysis and independently settled streaming identities are
+        // follow-up work.
         let claim = &mut submission >> self.tensors.logits.buffer();
         Ok(claim.take::<f32>()?)
     }

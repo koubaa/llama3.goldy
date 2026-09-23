@@ -1,4 +1,8 @@
 /target
 /models
 *.bin
+*.gguf
 .DS_Store
+tools/bench/.cache
+**/__pycache__/
+*.pyc

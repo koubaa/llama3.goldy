@@ -8,7 +8,7 @@ use crate::checkpoint::{Checkpoint, Config, ModelShape};
 use ammon::gpu::create_runtime;
 use ammon::kernels::DecodeStep;
 use ammon::AutoregressiveModel;
-use ammon::{CausalSelfAttention, Embedding, KvCache, Linear, RmsNorm, SwiGluMlp};
+use ammon::{CausalAttentionBlock, Embedding, KvCache, Linear, RmsNorm, SwiGluBlock};
 use anyhow::{Context, Result};
 use goldy::{
     DepositTransaction, HostView, MemoryExchange, ReplayStats, Runtime, Scheme, Tensor,
@@ -38,16 +38,16 @@ impl ModelTensors {
 
 /// Scratch the worker retains. Kept alive for the scheme lifetime.
 struct DecoderModules {
-    attention: CausalSelfAttention,
-    mlp: SwiGluMlp,
+    attention: CausalAttentionBlock,
+    mlp: SwiGluBlock,
     cache: KvCache,
 }
 
 impl DecoderModules {
     fn allocate(runtime: &Runtime, shape: &ModelShape) -> Result<Self> {
         Ok(Self {
-            attention: CausalSelfAttention::new(runtime, shape.dim, shape.n_heads, shape.seq_len)?,
-            mlp: SwiGluMlp::new(runtime, shape.dim, shape.hidden_dim)?,
+            attention: CausalAttentionBlock::new(runtime, shape.dim, shape.n_heads, shape.seq_len)?,
+            mlp: SwiGluBlock::new(runtime, shape.dim, shape.hidden_dim)?,
             cache: KvCache::new(
                 runtime,
                 shape.n_layers,

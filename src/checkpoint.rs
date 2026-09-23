@@ -9,7 +9,7 @@ use std::io::Read;
 use std::path::Path;
 
 #[cfg(any(feature = "cuda", feature = "metal"))]
-use ammon::{AttentionWeights, SwiGluWeights};
+use ammon::{CausalAttentionBlockWeights, SwiGluBlockWeights};
 
 /// Seven-field little-endian header. Negative `vocab_size` means an untied classifier.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, bytemuck::Pod, bytemuck::Zeroable)]
@@ -167,8 +167,8 @@ pub struct WeightLayout {
 #[cfg(any(feature = "cuda", feature = "metal"))]
 #[derive(Clone, Copy)]
 pub struct LayerWeights<'a> {
-    pub attention: AttentionWeights<'a>,
-    pub mlp: SwiGluWeights<'a>,
+    pub attention: CausalAttentionBlockWeights<'a>,
+    pub mlp: SwiGluBlockWeights<'a>,
 }
 
 impl WeightLayout {
@@ -297,14 +297,14 @@ impl WeightLayout {
     ) -> Result<LayerWeights<'a>> {
         let off = self.layer_offsets(layer, shape);
         Ok(LayerWeights {
-            attention: AttentionWeights {
+            attention: CausalAttentionBlockWeights {
                 norm: Self::packed_view(weights, u64::from(off.rms_att), &[shape.dim])?,
                 query: Self::packed_view(weights, u64::from(off.wq), &[shape.dim, shape.dim])?,
                 key: Self::packed_view(weights, u64::from(off.wk), &[shape.kv_dim, shape.dim])?,
                 value: Self::packed_view(weights, u64::from(off.wv), &[shape.kv_dim, shape.dim])?,
                 output: Self::packed_view(weights, u64::from(off.wo), &[shape.dim, shape.dim])?,
             },
-            mlp: SwiGluWeights {
+            mlp: SwiGluBlockWeights {
                 norm: Self::packed_view(weights, u64::from(off.rms_ffn), &[shape.dim])?,
                 gate: Self::packed_view(
                     weights,

@@ -1,0 +1,1192 @@
+{
+  "metadata": {
+    "captured_at": "2026-09-23T04:56:06.231879+00:00",
+    "hostname": "WIN-FAQM3SSHSGG",
+    "os": "Windows 11 10.0.26200",
+    "machine": "AMD64",
+    "python": "3.12.3",
+    "gpu": "NVIDIA GeForce RTX 4060 Ti, 591.74, 8188 MiB",
+    "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+    "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_Dec_16_19:27:18_Pacific_Standard_Time_2025\nCuda compilation tools, release 13.1, V13.1.115\nBuild cuda_13.1.r13.1/compiler.37061995_0",
+    "torch": "2.14.0+cpu cuda=None",
+    "cwd": "C:\\Dev\\kob3\\llama3.goldy",
+    "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
+    "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2"
+  },
+  "skipped": [
+    "pytorch-compile: torch.compile bench requires CUDA",
+    "llama3.cuda: WSL bash/nvcc unavailable",
+    "llama.cpp: Visual Studio 2022 MSVC toolset not found",
+    "llama.cpp-bench: Visual Studio 2022 MSVC toolset not found",
+    "pytorch-eager stories42M.bin / stories110M.bin: CPU torch reserved for 15M"
+  ],
+  "groups": [
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "compatibility",
+      "context_len": 50,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 508.10372514128994,
+        "p10": 498.8669186889746,
+        "p90": 516.3165267946029,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 514.4526909305421,
+        "p10": 505.7080227028114,
+        "p90": 523.5161486774459,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 475.8336009897339,
+        "p10": 474.1968767847803,
+        "p90": 517.4974579569542,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0101677,
+        "p10": 0.00969578,
+        "p90": 0.010212579999999999,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0084063,
+        "p10": 0.007742860000000001,
+        "p90": 0.00843534,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0018146,
+        "p10": 0.0017914000000000003,
+        "p90": 0.00183188,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.3952811,
+        "p10": 0.39528110000000005,
+        "p90": 0.39528110000000005,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim"
+      ],
+      "replay_stats": {
+        "clean_submits": 194,
+        "records": 2,
+        "resubmit_hits": 194,
+        "specialization_demotions": 0,
+        "specialization_promotions": 18,
+        "specialization_warms": 18,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "compatibility",
+      "context_len": 50,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 31.492229784546755,
+        "p10": 30.78918526892696,
+        "p90": 32.74456120506136,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 340.00113351286274,
+        "p10": 334.651487176145,
+        "p90": 347.6292522569293,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 473.0424872416434,
+        "p10": 325.5437132159707,
+        "p90": 498.1801053969323,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.011423899966757745,
+        "p10": 0.010211099998559804,
+        "p90": 0.016056059987749904,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.008455900067929178,
+        "p10": 0.008034540025983005,
+        "p90": 0.012776539998594672,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.002629399998113513,
+        "p10": 0.002586920000612736,
+        "p90": 0.0026883599814027546,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.767736200010404,
+        "p10": 0.767736200010404,
+        "p90": 0.767736200010404,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "cuda requested but unavailable; using cpu"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 121.79613873023096,
+        "p10": 121.75693801442117,
+        "p90": 122.44450286131033,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 122.00627112233569,
+        "p10": 121.74454293705654,
+        "p90": 122.93752866030846,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 123.74224843200894,
+        "p10": 122.08406113654596,
+        "p90": 123.75852572967626,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.065047,
+        "p10": 0.06496276000000001,
+        "p90": 0.06528948,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0565692,
+        "p10": 0.056561759999999996,
+        "p90": 0.05734016000000001,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00819815,
+        "p10": 0.00809987,
+        "p90": 0.00820399,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.5735872,
+        "p10": 0.5735872,
+        "p90": 0.5735872,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 90,
+        "records": 2,
+        "resubmit_hits": 90,
+        "specialization_demotions": 0,
+        "specialization_promotions": 36,
+        "specialization_warms": 36,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 120.04090785372858,
+        "p10": 119.76480985496387,
+        "p90": 120.1731337312952,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 119.58941962507222,
+        "p10": 119.35352525998013,
+        "p90": 119.63692461084138,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 120.12524025048049,
+        "p10": 120.04397926647012,
+        "p90": 120.93525371074625,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.2657533,
+        "p10": 0.26556042,
+        "p90": 0.26590450000000004,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.258064,
+        "p10": 0.2563384,
+        "p90": 0.25823872000000003,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.008110550000000001,
+        "p10": 0.00809339,
+        "p90": 0.008139110000000001,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.5727011,
+        "p10": 0.5727011,
+        "p90": 0.5727011,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 186,
+        "records": 2,
+        "resubmit_hits": 186,
+        "specialization_demotions": 0,
+        "specialization_promotions": 36,
+        "specialization_warms": 36,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 118.04724583305692,
+        "p10": 116.28294827401712,
+        "p90": 118.15909488842303,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 112.88146881367221,
+        "p10": 108.19754281621829,
+        "p90": 113.13210125523705,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 118.75703834159818,
+        "p10": 117.42854223229637,
+        "p90": 118.87530607786867,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 1.077718,
+        "p10": 1.0775932,
+        "p90": 1.09066472,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 1.0694103,
+        "p10": 1.0683466199999998,
+        "p90": 1.0815431000000002,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.008965850000000001,
+        "p10": 0.00888125,
+        "p90": 0.00909213,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.571483,
+        "p10": 0.571483,
+        "p90": 0.571483,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 570,
+        "records": 2,
+        "resubmit_hits": 570,
+        "specialization_demotions": 0,
+        "specialization_promotions": 36,
+        "specialization_warms": 36,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 112.94366692589928,
+        "p10": 112.8606966391807,
+        "p90": 113.75373835735944,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 106.1595777502795,
+        "p10": 106.0162982667595,
+        "p90": 106.96918574235522,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 113.57928460534154,
+        "p10": 113.49566616846754,
+        "p90": 114.38317443939155,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 1.9721614,
+        "p10": 1.95876164,
+        "p90": 1.97359164,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 1.9633861999999997,
+        "p10": 1.9496116399999992,
+        "p90": 1.9648330000000003,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0097847,
+        "p10": 0.00951678,
+        "p90": 0.009790459999999999,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.5652216,
+        "p10": 0.5652216,
+        "p90": 0.5652216,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 954,
+        "records": 2,
+        "resubmit_hits": 954,
+        "specialization_demotions": 0,
+        "specialization_promotions": 36,
+        "specialization_warms": 36,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 527.4173093566228,
+        "p10": 501.9423630494382,
+        "p90": 538.6982354796836,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 533.9776663841035,
+        "p10": 508.33770618464484,
+        "p90": 541.9476665421615,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 512.2988312268094,
+        "p10": 506.42147644611646,
+        "p90": 538.1048710724652,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0153938,
+        "p10": 0.01472932,
+        "p90": 0.015653880000000002,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0136639,
+        "p10": 0.01301638,
+        "p90": 0.01382294,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00174405,
+        "p10": 0.00174157,
+        "p90": 0.00182981,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.4051028,
+        "p10": 0.40510280000000004,
+        "p90": 0.4051028,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 90,
+        "records": 2,
+        "resubmit_hits": 90,
+        "specialization_demotions": 0,
+        "specialization_promotions": 18,
+        "specialization_warms": 18,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 39.03309350235321,
+        "p10": 36.38517335153951,
+        "p90": 42.47043190607664,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 337.9213196954767,
+        "p10": 303.5615883003073,
+        "p90": 361.21342960336864,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 375.4075850884112,
+        "p10": 341.42603404905964,
+        "p90": 435.0758613814469,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.022153500001877546,
+        "p10": 0.018382380018010736,
+        "p90": 0.024234220013022424,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.018646400014404207,
+        "p10": 0.01617391995387152,
+        "p90": 0.020549599977675824,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0026326500228606164,
+        "p10": 0.002547850005794317,
+        "p90": 0.0034827299998141823,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.7715857999864966,
+        "p10": 0.7715857999864967,
+        "p90": 0.7715857999864966,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "cuda requested but unavailable; using cpu",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 516.42860430679,
+        "p10": 496.9035500376379,
+        "p90": 518.938199245735,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 507.6995814651575,
+        "p10": 486.4131937596032,
+        "p90": 522.6451860306961,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 520.7589641936215,
+        "p10": 506.76357442832654,
+        "p90": 525.7935775395881,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0612916,
+        "p10": 0.060776960000000005,
+        "p90": 0.0630628,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0595285,
+        "p10": 0.05895986000000001,
+        "p90": 0.06118394,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0018023499999999999,
+        "p10": 0.0017962300000000002,
+        "p90": 0.00187815,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.3878153,
+        "p10": 0.38781530000000003,
+        "p90": 0.3878153,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 186,
+        "records": 2,
+        "resubmit_hits": 186,
+        "specialization_demotions": 0,
+        "specialization_promotions": 18,
+        "specialization_warms": 18,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 75.68891723000765,
+        "p10": 74.3010667095272,
+        "p90": 77.76541063980576,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 351.8726228610675,
+        "p10": 333.51132094716445,
+        "p90": 365.3584163217661,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 401.2399606365066,
+        "p10": 396.857209113248,
+        "p90": 498.14405426475554,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.07934880000539124,
+        "p10": 0.06486984002403916,
+        "p90": 0.08014424000866711,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.07726050005294383,
+        "p10": 0.06292801997624338,
+        "p90": 0.07811610009521246,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0025978999910876155,
+        "p10": 0.0024720999877899884,
+        "p90": 0.002709659980610013,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.7687084999633953,
+        "p10": 0.7687084999633953,
+        "p90": 0.7687084999633953,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "cuda requested but unavailable; using cpu",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 489.6968810791816,
+        "p10": 488.41600862986536,
+        "p90": 489.9419711625916,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 450.77787356807596,
+        "p10": 436.50309657003794,
+        "p90": 460.42523516476564,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 495.0794173655927,
+        "p10": 494.8015452805035,
+        "p90": 497.19882109909383,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.2587349,
+        "p10": 0.25860322,
+        "p90": 0.2590025,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.25652450000000004,
+        "p10": 0.25543218,
+        "p90": 0.25666858,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0020461,
+        "p10": 0.00203974,
+        "p90": 0.00205526,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.3836118,
+        "p10": 0.3836118,
+        "p90": 0.3836118,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 570,
+        "records": 2,
+        "resubmit_hits": 570,
+        "specialization_demotions": 0,
+        "specialization_promotions": 18,
+        "specialization_warms": 18,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 155.0993668166808,
+        "p10": 145.40857200133053,
+        "p90": 166.090770122757,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 336.4610193831543,
+        "p10": 287.5694088539531,
+        "p90": 350.1788845187551,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 377.4907337029703,
+        "p10": 356.9025767578288,
+        "p90": 380.4688082731654,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.3389504000078887,
+        "p10": 0.3358477599918842,
+        "p90": 0.358530559996143,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.33643209928413853,
+        "p10": 0.3338038599002175,
+        "p90": 0.3561233795131557,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00279515003785491,
+        "p10": 0.0026443500304594637,
+        "p90": 0.0038178700022399427,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.7751003000303172,
+        "p10": 0.7751003000303172,
+        "p90": 0.7751003000303172,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "cuda requested but unavailable; using cpu",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 465.73136849487753,
+        "p10": 465.04415413497884,
+        "p90": 466.5433774004116,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 418.172741932533,
+        "p10": 413.93837629821235,
+        "p90": 425.29952452334345,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 470.5212130163472,
+        "p10": 470.1692242711557,
+        "p90": 470.64380184092033,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.4763968,
+        "p10": 0.47615992000000007,
+        "p90": 0.4771056,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.4739424999999997,
+        "p10": 0.47381906,
+        "p90": 0.4742973799999999,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00226605,
+        "p10": 0.0022619700000000003,
+        "p90": 0.0022782899999999997,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.3991493,
+        "p10": 0.39914930000000004,
+        "p90": 0.3991493,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 954,
+        "records": 2,
+        "resubmit_hits": 954,
+        "specialization_demotions": 0,
+        "specialization_promotions": 18,
+        "specialization_warms": 18,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 191.90996294651885,
+        "p10": 188.2302397633394,
+        "p90": 197.06218674392665,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 301.2320392648082,
+        "p10": 277.1393152543182,
+        "p90": 309.53311623221833,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 340.7387217637362,
+        "p10": 337.8279358297668,
+        "p90": 369.9824898989191,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.657243900001049,
+        "p10": 0.6078735799994319,
+        "p90": 0.6642274999991059,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.6544603995862417,
+        "p10": 0.6037336003384554,
+        "p90": 0.6601115202414802,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0029949999880045652,
+        "p10": 0.0027383600361645223,
+        "p90": 0.0031954400008544328,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.77409219997935,
+        "p10": 0.77409219997935,
+        "p90": 0.77409219997935,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "cuda requested but unavailable; using cpu",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 272.1034586823267,
+        "p10": 269.7346525224103,
+        "p90": 272.13254020901877,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 274.5838338767805,
+        "p10": 271.92734434561754,
+        "p90": 276.986316182361,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 267.7560512867591,
+        "p10": 259.2445068597393,
+        "p90": 269.4398425643146,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0295649,
+        "p10": 0.029328740000000002,
+        "p90": 0.03059346,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0261432,
+        "p10": 0.02598008,
+        "p90": 0.02700864,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0034259,
+        "p10": 0.00342162,
+        "p90": 0.0034333799999999998,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.4437841,
+        "p10": 0.44378410000000007,
+        "p90": 0.4437841,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 90,
+        "records": 2,
+        "resubmit_hits": 90,
+        "specialization_demotions": 0,
+        "specialization_promotions": 24,
+        "specialization_warms": 24,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 269.80184227736214,
+        "p10": 269.66090577254465,
+        "p90": 269.8687059788747,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 272.1486475913144,
+        "p10": 266.04509874575103,
+        "p90": 272.2064335359028,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 270.6938932330893,
+        "p10": 270.50231824943376,
+        "p90": 272.62654377227034,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.1180095,
+        "p10": 0.11715958000000001,
+        "p90": 0.11810478,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.11452049999999998,
+        "p10": 0.1137101,
+        "p90": 0.11460162000000002,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0034934,
+        "p10": 0.00348932,
+        "p90": 0.00349944,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.4168795,
+        "p10": 0.4168795,
+        "p90": 0.4168795,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 186,
+        "records": 2,
+        "resubmit_hits": 186,
+        "specialization_demotions": 0,
+        "specialization_promotions": 24,
+        "specialization_warms": 24,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 255.36481921609476,
+        "p10": 254.8647833238512,
+        "p90": 255.69589295920645,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 239.40878001774615,
+        "p10": 233.86447123495242,
+        "p90": 240.51358841385505,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 258.0815074236027,
+        "p10": 257.8239221146564,
+        "p90": 258.3201802748681,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.4964893,
+        "p10": 0.4955751400000001,
+        "p90": 0.49671889999999996,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.4920926000000001,
+        "p10": 0.49163803999999994,
+        "p90": 0.49258436000000005,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0040514999999999995,
+        "p10": 0.0038689,
+        "p90": 0.00406686,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.4188088,
+        "p10": 0.41880880000000004,
+        "p90": 0.4188088,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 570,
+        "records": 2,
+        "resubmit_hits": 570,
+        "specialization_demotions": 0,
+        "specialization_promotions": 24,
+        "specialization_warms": 24,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 248.60465415071062,
+        "p10": 246.15177010050473,
+        "p90": 249.3304761082756,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 228.09796237238984,
+        "p10": 225.8162602439107,
+        "p90": 228.39970656925232,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 250.43230455443154,
+        "p10": 248.07740770825504,
+        "p90": 251.30455222194186,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.8946774,
+        "p10": 0.8915988400000001,
+        "p90": 0.90314772,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.8904601999999999,
+        "p10": 0.8873721999999996,
+        "p90": 0.8989330800000002,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0041191000000000005,
+        "p10": 0.00411698,
+        "p90": 0.00412222,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.4328848,
+        "p10": 0.43288480000000007,
+        "p90": 0.4328848,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus full logit HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": {
+        "clean_submits": 954,
+        "records": 2,
+        "resubmit_hits": 954,
+        "specialization_demotions": 0,
+        "specialization_promotions": 24,
+        "specialization_warms": 24,
+        "topology_records": 0
+      }
+    }
+  ],
+  "headline": [
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "legacy_compat_tok_s": {
+        "median": 508.10372514128994,
+        "p10": 498.8669186889746,
+        "p90": 516.3165267946029,
+        "n": 3.0
+      },
+      "match_expected": true
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "legacy_compat_tok_s": {
+        "median": 31.492229784546755,
+        "p10": 30.78918526892696,
+        "p90": 32.74456120506136,
+        "n": 3.0
+      },
+      "match_expected": true
+    }
+  ],
+  "n_rows": 54
+}

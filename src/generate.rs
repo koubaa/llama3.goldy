@@ -5,10 +5,7 @@ use crate::tokenizer::{apply_dream_prompt_patch, printable_piece, Tokenizer};
 use ammon::Tokenizer as _;
 use anyhow::Result;
 
-/// llama3.cuda README output for `"I have a dream"` at 50 tokens on stories15M.
-pub const DREAM_STORY: &str = "\
-I have a dream. He dreams of a big, beautiful garden full of flowers and trees. He dreams of playing with his friends and eating yummy snacks.\n\
-One day, he was walking in the garden when he saw";
+pub use crate::bench::DREAM_STORY;
 
 #[derive(Debug, Clone)]
 pub struct GenerateOutput {

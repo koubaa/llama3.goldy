@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import pathlib
 import shutil
 import subprocess
@@ -12,6 +13,7 @@ sys.path.insert(0, str(TOOLS))
 
 from bench import common  # noqa: E402
 from bench.adapters.llama3_cuda.build import SPLICE_MARKER, splice  # noqa: E402
+from bench.adapters.llama_cpp.build import cmake_configure_cmd  # noqa: E402
 from bench.adapters.llama_cpp.convert import convert_cmd, gguf_path_for  # noqa: E402
 from bench.adapters.llama_cpp.run import completion_cmd, parse_perf  # noqa: E402
 from bench.adapters.util import REFS_LLAMA3_CUDA, to_wsl_path  # noqa: E402
@@ -64,6 +66,13 @@ class Llama3CudaAdapterTests(unittest.TestCase):
 
 
 class LlamaCppAdapterTests(unittest.TestCase):
+    def test_windows_cmake_uses_vs2022(self):
+        cmd = " ".join(cmake_configure_cmd())
+        if os.name == "nt":
+            self.assertIn("Visual Studio 17 2022", cmd)
+            self.assertIn("-A x64", cmd)
+        self.assertIn("GGML_CUDA=ON", cmd)
+
     def test_convert_cmd_uses_llama2c_tool_and_shared_tokenizer(self):
         ckpt = pathlib.Path("models/stories15M.bin")
         tok = pathlib.Path("models/tokenizer.bin")

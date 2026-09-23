@@ -37,6 +37,8 @@ cargo run --release --features metal -- "I have a dream"
 
 Optional flags: `--checkpoint PATH`, `--tokenizer PATH`, `-n 50`.
 
+The JSON benchmark harness is a separate binary (`llama3-goldy-bench`). Protocol, matrix runner, and adapters live in [BENCHMARKS.md](BENCHMARKS.md) and `tools/bench/`.
+
 Expected sample (50 tokens, greedy, llama3.cuda README):
 
 ```

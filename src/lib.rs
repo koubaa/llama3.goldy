@@ -1,5 +1,6 @@
 //! llama3.cuda TinyStories generator on Ammon / Goldy (CUDA / Metal).
 
+pub mod bench;
 pub mod checkpoint;
 pub mod tokenizer;
 

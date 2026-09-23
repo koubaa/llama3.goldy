@@ -135,9 +135,16 @@ Pinned `refs/llama.cpp` commit: `f072b103714dfa1eee531f80b24512faf38e3dd2`.
 python tools/fetch_assets.py
 python -m unittest discover -s tools/bench/tests -v
 
+cargo run --release --features cuda --bin llama3-goldy-bench -- --mode compatibility
+python tools/bench/adapters/goldy/run.py --mode compatibility
+
 python tools/bench/pytorch/bench.py --mode compatibility
 python tools/bench/pytorch/bench.py --mode scaling --checkpoint models/stories15M.bin --context 32
 
 python tools/bench/adapters/llama3_cuda/run.py --mode compatibility
 python tools/bench/adapters/llama_cpp/run.py --mode compatibility
+
+# Full matrix (skips engines whose prerequisites are missing)
+python tools/bench/run.py --smoke
+python tools/bench/run.py
 ```

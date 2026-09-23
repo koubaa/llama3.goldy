@@ -39,10 +39,8 @@ def find_exe(stem: str) -> pathlib.Path:
     raise FileNotFoundError(f"{name} not found under {BUILD_DIR}")
 
 
-def configure() -> None:
-    verify_ref_commit(REFS_LLAMA_CPP, common.LLAMA_CPP_COMMIT)
-    BUILD_DIR.mkdir(parents=True, exist_ok=True)
-    cmake = [
+def cmake_configure_cmd() -> list[str]:
+    cmd = [
         "cmake",
         "-S",
         str(REFS_LLAMA_CPP),
@@ -55,7 +53,15 @@ def configure() -> None:
         "-DLLAMA_BUILD_TESTS=OFF",
         "-DLLAMA_BUILD_SERVER=OFF",
     ]
-    run(cmake)
+    if os.name == "nt":
+        cmd[1:1] = ["-G", "Visual Studio 17 2022", "-A", "x64"]
+    return cmd
+
+
+def configure() -> None:
+    verify_ref_commit(REFS_LLAMA_CPP, common.LLAMA_CPP_COMMIT)
+    BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    run(cmake_configure_cmd())
 
 
 def build() -> dict[str, pathlib.Path]:

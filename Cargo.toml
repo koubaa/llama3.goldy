@@ -11,6 +11,8 @@ ammon = { path = "../ammon", default-features = false }
 anyhow = "1.0"
 bytemuck = { version = "1.25", features = ["derive"] }
 goldy = { path = "../goldy", default-features = false, features = ["tensor"] }
+serde_json = "1.0"
+sha2 = "0.10"
 
 [features]
 default = []
@@ -20,6 +22,10 @@ metal = ["ammon/metal", "goldy/metal"]
 [[bin]]
 name = "llama3-goldy"
 path = "src/main.rs"
+
+[[bin]]
+name = "llama3-goldy-bench"
+path = "src/bin/llama3-goldy-bench.rs"
 
 [lib]
 name = "llama3_goldy"

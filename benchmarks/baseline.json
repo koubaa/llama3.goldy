@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "captured_at": "2026-09-24T02:12:56.279529+00:00",
+    "captured_at": "2026-09-24T02:44:42.794612+00:00",
     "hostname": "WIN-FAQM3SSHSGG",
     "os": "Windows 11 10.0.26200",
     "machine": "AMD64",
@@ -13,9 +13,9 @@
     "cwd": "C:\\Dev\\kob3\\llama3.goldy",
     "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
     "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2",
-    "goldy_refreshed_at": "2026-09-24T02:12:56.279529+00:00",
+    "goldy_refreshed_at": "2026-09-24T02:44:42.794612+00:00",
     "other_engines_captured_at": "2026-09-24T01:17:44.990645+00:00",
-    "note": "Goldy rows refreshed after KV projections moved to semantic matmul plus cache stores. Other engines are unchanged from 2026-09-24T01:17:44Z."
+    "note": "Goldy rows refreshed after logits withdrawal moved to a ledger-ordered eager host sink. Other engines are unchanged from 2026-09-24T01:17:44Z."
   },
   "skipped": [],
   "groups": [
@@ -29,50 +29,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 1005.8443749201086,
-        "p10": 999.9906129205655,
-        "p90": 1010.4844342864087,
+        "median": 1057.3246162792746,
+        "p10": 1045.1691536534927,
+        "p90": 1065.642943742781,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 1024.1610982648435,
-        "p10": 1015.9938030403794,
-        "p90": 1025.7173618599184,
+        "median": 1085.6453558504222,
+        "p10": 1067.1660241654017,
+        "p90": 1088.5908757254092,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 1213.1137597428196,
-        "p10": 1184.2977563626653,
-        "p90": 1214.115511291592,
+        "median": 1176.6436240623623,
+        "p10": 1111.4649639976658,
+        "p90": 1179.5043414771721,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0041502,
-        "p10": 0.0041313999999999995,
-        "p90": 0.0042062,
+        "median": 0.0043142,
+        "p10": 0.0042518,
+        "p90": 0.00448172,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0032973000000000004,
-        "p10": 0.00329458,
-        "p90": 0.0033780200000000007,
+        "median": 0.0033994999999999997,
+        "p10": 0.00339126,
+        "p90": 0.00360182,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0009156,
-        "p10": 0.0009136000000000001,
-        "p90": 0.0009164,
+        "median": 0.000905,
+        "p10": 0.00090364,
+        "p90": 0.0009186,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.3781784,
-        "p10": 0.3781784,
-        "p90": 0.3781784,
+        "median": 0.4245103,
+        "p10": 0.4245103,
+        "p90": 0.4245103,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim"
+        "each step includes worker.submit plus eager host-sink HostView claim"
       ],
       "replay_stats": {
         "clean_submits": 194,
@@ -330,50 +330,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 299.22772045602306,
-        "p10": 298.1774375026819,
-        "p90": 299.95271920300456,
+        "median": 315.5356863690018,
+        "p10": 315.47487722031565,
+        "p90": 318.0336648413522,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 298.6779766060475,
-        "p10": 296.761220013354,
-        "p90": 299.6831068030728,
+        "median": 317.04765226213493,
+        "p10": 316.01003289061384,
+        "p90": 318.8103601060596,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 309.79071424461955,
-        "p10": 308.37844788205865,
-        "p90": 311.18154492637893,
+        "median": 323.50494500415937,
+        "p10": 317.56375676444134,
+        "p90": 325.0462253803594,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0257956,
-        "p10": 0.0257164,
-        "p90": 0.02648776,
+        "median": 0.024864,
+        "p10": 0.024633520000000002,
+        "p90": 0.02518464,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.022595900000000002,
-        "p10": 0.022495020000000004,
-        "p90": 0.022699499999999997,
+        "median": 0.021637999999999998,
+        "p10": 0.021535520000000002,
+        "p90": 0.022044719999999997,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0031625,
-        "p10": 0.0031544600000000004,
-        "p90": 0.0031659799999999997,
+        "median": 0.00310645,
+        "p10": 0.00310389,
+        "p90": 0.0031440900000000004,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.5865683,
-        "p10": 0.5865683,
-        "p90": 0.5865683,
+        "median": 0.56787,
+        "p10": 0.5678700000000001,
+        "p90": 0.56787,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -699,50 +699,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 298.0521643122705,
-        "p10": 296.1509253166196,
-        "p90": 300.35154915545957,
+        "median": 305.890927275097,
+        "p10": 305.18671514449204,
+        "p90": 305.95929261060974,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 297.090187296795,
-        "p10": 295.38579099104044,
-        "p90": 299.35745275699634,
+        "median": 297.27344512053514,
+        "p10": 297.2416356353644,
+        "p90": 298.26600569537584,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 301.87033013902595,
-        "p10": 295.6726485436025,
-        "p90": 303.2103943425211,
+        "median": 311.7413873899604,
+        "p10": 310.6067145109434,
+        "p90": 312.33290543937756,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.1059549,
-        "p10": 0.10551170000000001,
-        "p90": 0.1081461,
+        "median": 0.1027386,
+        "p10": 0.10252956,
+        "p90": 0.1032846,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.10269309999999998,
-        "p10": 0.10223973999999998,
-        "p90": 0.10485701999999998,
+        "median": 0.09944139999999999,
+        "p10": 0.09925315999999998,
+        "p90": 0.09980499999999999,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0032953,
-        "p10": 0.00328762,
-        "p90": 0.0033051400000000002,
+        "median": 0.0033143499999999998,
+        "p10": 0.00331239,
+        "p90": 0.00332911,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.5649903,
-        "p10": 0.5649903,
-        "p90": 0.5649903,
+        "median": 0.5708343,
+        "p10": 0.5708343,
+        "p90": 0.5708343,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -1068,50 +1068,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 271.12037248120583,
-        "p10": 270.04200927058986,
-        "p90": 272.22675923000827,
+        "median": 290.7947091745731,
+        "p10": 288.7502949839481,
+        "p90": 290.8704819510246,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 247.29559087417445,
-        "p10": 246.87725905118637,
-        "p90": 249.35979252726602,
+        "median": 264.66666887222226,
+        "p10": 264.39837348196187,
+        "p90": 265.077246901512,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 275.1863791842955,
-        "p10": 273.57621825034204,
-        "p90": 276.3856753855349,
+        "median": 294.95270886193566,
+        "p10": 292.7180141593036,
+        "p90": 295.0342814207888,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.465304,
-        "p10": 0.46324032,
-        "p90": 0.46797056,
+        "median": 0.434263,
+        "p10": 0.43416932,
+        "p90": 0.43757828000000004,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.4615054000000001,
-        "p10": 0.45950500000000005,
-        "p90": 0.4642256400000001,
+        "median": 0.43057749999999967,
+        "p10": 0.43045846000000004,
+        "p90": 0.43387094,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0037583,
-        "p10": 0.0037357799999999997,
-        "p90": 0.00376394,
+        "median": 0.0037227,
+        "p10": 0.0037174200000000004,
+        "p90": 0.0037370999999999997,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.5741029,
-        "p10": 0.5741029,
-        "p90": 0.5741029,
+        "median": 0.5724781,
+        "p10": 0.5724781,
+        "p90": 0.5724781,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -1437,50 +1437,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 252.07426404376687,
-        "p10": 249.41138353835368,
-        "p90": 254.48430201523513,
+        "median": 271.61436967834123,
+        "p10": 269.96965628520564,
+        "p90": 272.32851391561263,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 224.15650607253988,
-        "p10": 211.7350668503266,
-        "p90": 224.21103971248297,
+        "median": 236.73436776388118,
+        "p10": 234.16455117552127,
+        "p90": 237.58159049689328,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 254.7706373070355,
-        "p10": 252.8531324637266,
-        "p90": 257.40961084498105,
+        "median": 274.7953852612817,
+        "p10": 273.02522150103056,
+        "p90": 275.9155062774596,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.879628,
-        "p10": 0.87058448,
-        "p90": 0.88764248,
+        "median": 0.8159243,
+        "p10": 0.8125129400000001,
+        "p90": 0.8212399800000001,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.8752971,
-        "p10": 0.8663464600000002,
-        "p90": 0.8819474999999999,
+        "median": 0.8115129000000002,
+        "p10": 0.8082217800000004,
+        "p90": 0.8167829000000002,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.004217500000000001,
-        "p10": 0.004214700000000001,
-        "p90": 0.004250659999999999,
+        "median": 0.00418905,
+        "p10": 0.00417589,
+        "p90": 0.00422293,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.5621119,
-        "p10": 0.5621119,
-        "p90": 0.5621119,
+        "median": 0.5836024,
+        "p10": 0.5836024,
+        "p90": 0.5836024,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -1806,50 +1806,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 1102.9614514972702,
-        "p10": 1102.5988552346819,
-        "p90": 1114.3653328857083,
+        "median": 1137.1036935195427,
+        "p10": 1127.0322700880838,
+        "p90": 1154.0193846063419,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 1119.9070477150399,
-        "p10": 1095.702240946751,
-        "p90": 1156.1718385690876,
+        "median": 1146.419231182603,
+        "p10": 1137.329986331014,
+        "p90": 1177.6286881296542,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 1204.9644535486204,
-        "p10": 1082.7057764321694,
-        "p90": 1226.0412636208937,
+        "median": 1185.2152858908587,
+        "p10": 1167.1520127986873,
+        "p90": 1227.9304322113487,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0066114,
-        "p10": 0.006511560000000001,
-        "p90": 0.00739948,
+        "median": 0.0067454,
+        "p10": 0.006511960000000001,
+        "p90": 0.00684668,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0058093,
-        "p10": 0.005709860000000001,
-        "p90": 0.00648434,
+        "median": 0.0059061,
+        "p10": 0.005702420000000001,
+        "p90": 0.005997860000000001,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0008499,
-        "p10": 0.0008493800000000001,
-        "p90": 0.00085238,
+        "median": 0.0008526499999999999,
+        "p10": 0.00083433,
+        "p90": 0.0008754500000000001,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.3761272,
-        "p10": 0.3761272,
-        "p90": 0.3761272,
+        "median": 0.3812867,
+        "p10": 0.38128670000000003,
+        "p90": 0.3812867,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -2175,50 +2175,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 1059.9908748611642,
-        "p10": 1049.7326495670243,
-        "p90": 1074.0731989252686,
+        "median": 1115.6275162251045,
+        "p10": 1076.7795135631,
+        "p90": 1133.0256120374252,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 1035.2234788685007,
-        "p10": 1026.3652997666081,
-        "p90": 1038.224321483125,
+        "median": 1078.6904697696996,
+        "p10": 1003.4594867438276,
+        "p90": 1099.5389901832862,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 1094.1923095928898,
-        "p10": 1083.0282491466892,
-        "p90": 1114.1550176935505,
+        "median": 1156.759580581365,
+        "p10": 1140.7195022953524,
+        "p90": 1171.9465387974988,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0292703,
-        "p10": 0.028742460000000004,
-        "p90": 0.029533419999999998,
+        "median": 0.0276945,
+        "p10": 0.02745322,
+        "p90": 0.02809898,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0283314,
-        "p10": 0.02782604,
-        "p90": 0.028624200000000006,
+        "median": 0.026798999999999996,
+        "p10": 0.02645284,
+        "p90": 0.027177160000000002,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0009063000000000001,
-        "p10": 0.00089778,
-        "p90": 0.00092742,
+        "median": 0.0009201000000000001,
+        "p10": 0.0009038200000000001,
+        "p90": 0.0009753400000000001,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.378728,
-        "p10": 0.37872800000000006,
-        "p90": 0.378728,
+        "median": 0.3756452,
+        "p10": 0.3756452,
+        "p90": 0.3756452,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -2544,50 +2544,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 959.1833701920934,
-        "p10": 948.7365560393262,
-        "p90": 959.8936184293381,
+        "median": 995.3073361860804,
+        "p10": 991.1881740401622,
+        "p90": 1004.0678130398805,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 815.7313796566791,
-        "p10": 794.2290759668342,
-        "p90": 816.7510595013456,
+        "median": 868.6776554390078,
+        "p10": 862.9116963608608,
+        "p90": 870.3607086455861,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 981.0298186717008,
-        "p10": 975.5173929961038,
-        "p90": 985.5645399676548,
+        "median": 1020.1843882869979,
+        "p10": 1014.1524786021095,
+        "p90": 1028.9385146324785,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.1306299,
-        "p10": 0.13000758,
-        "p90": 0.13134606,
+        "median": 0.1256317,
+        "p10": 0.12460378,
+        "p90": 0.12635482,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.12945580000000004,
-        "p10": 0.12886083999999998,
-        "p90": 0.13018836,
+        "median": 0.12448730000000001,
+        "p10": 0.12343042000000007,
+        "p90": 0.12522881999999996,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0011458,
-        "p10": 0.001134,
-        "p90": 0.0011484400000000001,
+        "median": 0.00113525,
+        "p10": 0.00113065,
+        "p90": 0.00114161,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.3665942,
-        "p10": 0.3665942,
-        "p90": 0.3665942,
+        "median": 0.3744136,
+        "p10": 0.3744136,
+        "p90": 0.3744136,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -2913,50 +2913,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 837.3043724526862,
-        "p10": 835.8009655237931,
-        "p90": 840.4666618454513,
+        "median": 887.1636000502479,
+        "p10": 880.1477317963962,
+        "p90": 896.6256525796684,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 694.8636547222501,
-        "p10": 691.6664652110298,
-        "p90": 695.5888528085922,
+        "median": 724.5261146381445,
+        "p10": 717.0745492876486,
+        "p90": 734.8594092978436,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 852.6273731621197,
-        "p10": 851.195217030976,
-        "p90": 856.0473223751013,
+        "median": 904.6451296218548,
+        "p10": 897.2401201538107,
+        "p90": 913.4530516037728,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.2631166,
-        "p10": 0.26200988000000003,
-        "p90": 0.26349156,
+        "median": 0.2479526,
+        "p10": 0.24552580000000002,
+        "p90": 0.24995092000000002,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.26154449999999996,
-        "p10": 0.26050065999999994,
-        "p90": 0.26198474,
+        "median": 0.24650549999999985,
+        "p10": 0.24413429999999992,
+        "p90": 0.24854413999999997,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0013941000000000001,
-        "p10": 0.0013819000000000001,
-        "p90": 0.0013981,
+        "median": 0.0013695,
+        "p10": 0.0013569,
+        "p90": 0.0013812599999999998,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.3720864,
-        "p10": 0.37208640000000004,
-        "p90": 0.3720864,
+        "median": 0.3742321,
+        "p10": 0.37423210000000007,
+        "p90": 0.3742321,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -3282,50 +3282,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 614.7689865812697,
-        "p10": 607.3179180440111,
-        "p90": 615.6363417976496,
+        "median": 688.8346170705743,
+        "p10": 688.7086894955103,
+        "p90": 692.1203300102904,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 603.5390018219333,
-        "p10": 600.4661221098074,
-        "p90": 603.9363712536405,
+        "median": 689.8633208295606,
+        "p10": 685.3367639230194,
+        "p90": 691.0556698263711,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 665.7473013457607,
-        "p10": 658.5221465184602,
-        "p90": 677.9866415150781,
+        "median": 728.453389389556,
+        "p10": 718.9795130778456,
+        "p90": 733.0560296153589,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0119672,
-        "p10": 0.01187384,
-        "p90": 0.012712160000000002,
+        "median": 0.0110155,
+        "p10": 0.0109663,
+        "p90": 0.01112622,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0105145,
-        "p10": 0.01032554,
-        "p90": 0.01063018,
+        "median": 0.0096094,
+        "p10": 0.009549160000000001,
+        "p90": 0.00973644,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0015253,
-        "p10": 0.00152482,
-        "p90": 0.00152698,
+        "median": 0.0014328,
+        "p10": 0.0014117600000000002,
+        "p90": 0.00143344,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4420047,
-        "p10": 0.4420047,
-        "p90": 0.4420047,
+        "median": 0.4297746,
+        "p10": 0.4297746,
+        "p90": 0.4297746,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -3651,50 +3651,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 628.4934329267709,
-        "p10": 628.43916866976,
-        "p90": 636.9042287202208,
+        "median": 665.0974223137293,
+        "p10": 660.8155486530736,
+        "p90": 668.5329006745413,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 621.2699534435828,
-        "p10": 596.6833108333982,
-        "p90": 631.4277254289287,
+        "median": 649.2215427938437,
+        "p10": 629.5417573690593,
+        "p90": 653.2482332703854,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 650.0423575987854,
-        "p10": 642.0729586087117,
-        "p90": 656.6830524630568,
+        "median": 685.7375439093233,
+        "p10": 682.584859363921,
+        "p90": 687.2720631920669,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0492935,
-        "p10": 0.0487127,
-        "p90": 0.049795740000000005,
+        "median": 0.0467412,
+        "p10": 0.04671152,
+        "p90": 0.046943200000000004,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0476892,
-        "p10": 0.047208160000000006,
-        "p90": 0.04828296000000001,
+        "median": 0.045206800000000005,
+        "p10": 0.045105919999999994,
+        "p90": 0.045415840000000006,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00152485,
-        "p10": 0.00151813,
-        "p90": 0.00154637,
+        "median": 0.00153735,
+        "p10": 0.00151975,
+        "p90": 0.00157371,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4267582,
-        "p10": 0.42675820000000003,
-        "p90": 0.4267582,
+        "median": 0.4288039,
+        "p10": 0.4288039,
+        "p90": 0.4288039,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -4020,50 +4020,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 570.6748672377166,
-        "p10": 569.5030860549467,
-        "p90": 572.6043476126326,
+        "median": 606.8163423333028,
+        "p10": 605.9848519591526,
+        "p90": 607.5947009318539,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 504.45973938348703,
-        "p10": 503.4709697354803,
-        "p90": 506.09500842606417,
+        "median": 538.276505912631,
+        "p10": 532.309108801081,
+        "p90": 540.7476141323248,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 582.5324658645148,
-        "p10": 581.1703184995511,
-        "p90": 584.4627724230489,
+        "median": 619.34270670319,
+        "p10": 617.9010084152706,
+        "p90": 619.6546037989461,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.2198391,
-        "p10": 0.21910254,
-        "p90": 0.22038974,
+        "median": 0.2068704,
+        "p10": 0.20679336,
+        "p90": 0.20743936000000002,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.21801360000000003,
-        "p10": 0.21729416000000007,
-        "p90": 0.21852488000000003,
+        "median": 0.20505610000000002,
+        "p10": 0.2049529000000001,
+        "p90": 0.20553481999999998,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0018576,
-        "p10": 0.0018526,
-        "p90": 0.00186024,
+        "median": 0.00184725,
+        "p10": 0.00183481,
+        "p90": 0.00186553,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4247024,
-        "p10": 0.4247024,
-        "p90": 0.4247024,
+        "median": 0.4218493,
+        "p10": 0.42184930000000004,
+        "p90": 0.4218493,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -4389,50 +4389,50 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 528.0058284744225,
-        "p10": 527.1802583831663,
-        "p90": 528.0661869667971,
+        "median": 551.8383753507246,
+        "p10": 549.3553105591596,
+        "p90": 552.4180924990042,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 443.30908063238036,
-        "p10": 442.43181587773165,
-        "p90": 444.6217817540918,
+        "median": 460.015985555498,
+        "p10": 458.73490135344053,
+        "p90": 461.6825580279044,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 536.4994015505553,
-        "p10": 535.7692694866474,
-        "p90": 536.5967959176529,
+        "median": 561.2023924838139,
+        "p10": 558.5561352449977,
+        "p90": 561.6114347249079,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.4178811,
-        "p10": 0.4177807800000001,
-        "p90": 0.41842014,
+        "median": 0.399533,
+        "p10": 0.39924108,
+        "p90": 0.40141988,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.4156575000000001,
-        "p10": 0.4155820599999999,
-        "p90": 0.4162241400000003,
+        "median": 0.3973610999999999,
+        "p10": 0.3970717400000003,
+        "p90": 0.39924590000000026,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0021348,
-        "p10": 0.00212984,
-        "p90": 0.0021370000000000004,
+        "median": 0.0021466999999999997,
+        "p10": 0.00214326,
+        "p90": 0.00215546,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4194161,
-        "p10": 0.41941610000000007,
-        "p90": 0.4194161,
+        "median": 0.425828,
+        "p10": 0.42582800000000004,
+        "p90": 0.425828,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus full logit HostView claim",
+        "each step includes worker.submit plus eager host-sink HostView claim",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": {
@@ -4754,9 +4754,9 @@
       "engine": "goldy",
       "execution": "native",
       "legacy_compat_tok_s": {
-        "median": 1005.8443749201086,
-        "p10": 999.9906129205655,
-        "p90": 1010.4844342864087,
+        "median": 1057.3246162792746,
+        "p10": 1045.1691536534927,
+        "p90": 1065.642943742781,
         "n": 3.0
       },
       "match_expected": true

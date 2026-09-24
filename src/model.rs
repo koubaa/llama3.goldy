@@ -11,7 +11,7 @@ use ammon::AutoregressiveModel;
 use ammon::{CausalAttentionBlock, Embedding, KvCache, Linear, RmsNorm, SwiGluBlock};
 use anyhow::{Context, Result};
 use goldy::{
-    DepositTransaction, HostView, MemoryExchange, ReplayStats, Runtime, Scheme, Tensor,
+    DepositTransaction, HostSink, HostView, MemoryExchange, ReplayStats, Runtime, Scheme, Tensor,
     TensorDType, TensorShape,
 };
 
@@ -61,10 +61,11 @@ impl DecoderModules {
 
 pub struct Model {
     pub config: Config,
-    tensors: ModelTensors,
+    _tensors: ModelTensors,
     _modules: DecoderModules,
     worker: Scheme,
     deposit: DepositTransaction,
+    logits_sink: HostSink,
 }
 
 impl Model {
@@ -82,8 +83,9 @@ impl Model {
         let tensors = ModelTensors::allocate(runtime, checkpoint, &shape)?;
 
         let mut worker = Scheme::new(&ctx);
-        let deposit = MemoryExchange::new(&ctx)
-            .bind_deposit(&mut worker, DecodeStep::deposit_target(&tensors.step))?;
+        let exchange = MemoryExchange::new(&ctx);
+        let deposit =
+            exchange.bind_deposit(&mut worker, DecodeStep::deposit_target(&tensors.step))?;
 
         Embedding::new(runtime)?.record_group(
             &mut worker,
@@ -119,13 +121,15 @@ impl Model {
             norm.record_inplace(scheme, tensors.x.view(), rms_final)?;
             lm_head.record(scheme, classifier, tensors.x.view(), tensors.logits.view())
         })?;
+        let logits_sink = exchange.bind_host_sink(&mut worker, tensors.logits.buffer())?;
 
         Ok(Self {
             config,
-            tensors,
+            _tensors: tensors,
             _modules: modules,
             worker,
             deposit,
+            logits_sink,
         })
     }
 
@@ -136,12 +140,9 @@ impl Model {
         };
         (&self.deposit << &step)?;
         let mut submission = self.worker.submit()?;
-        // `>>` claims mid-flight; `take` waits for prior writers then realizes host-use.
-        // CUDA fills cacheable pinned staging with one producer-stream DtoH, then copies
-        // into the `HostView`. That copy is not interned on the scheme the way the deposit
-        // is. Eager sink analysis and independently settled streaming identities are
-        // follow-up work.
-        let claim = &mut submission >> self.tensors.logits.buffer();
+        // The sink copy is part of the retained scheme and ledger-ordered after
+        // the classifier. Claiming only waits and reads its populated staging.
+        let claim = &mut submission >> &self.logits_sink;
         Ok(claim.take::<f32>()?)
     }
 

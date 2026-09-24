@@ -115,7 +115,7 @@ fn run() -> anyhow::Result<()> {
     }
     let mut notes: Vec<String> = vec![
         "tokenizer load is folded into load_s".into(),
-        "each step includes worker.submit plus full logit HostView claim".into(),
+        "each step includes worker.submit plus eager host-sink HostView claim".into(),
     ];
     if std::env::var_os("GOLDY_VALIDATION").is_some() {
         notes.push("GOLDY_VALIDATION is set; timed submits may be synchronous".into());

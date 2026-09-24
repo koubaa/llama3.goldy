@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-09-24T14:28:29.738178+00:00",
+  "captured_at": "2026-09-24T15:22:44.094176+00:00",
   "hostname": "WIN-FAQM3SSHSGG",
   "os": "Windows 11 10.0.26200",
   "machine": "AMD64",
@@ -12,7 +12,7 @@
   "cwd": "C:\\Dev\\kob3\\llama3.goldy",
   "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
   "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2",
-  "goldy_refreshed_at": "2026-09-24T14:28:29.738178+00:00",
+  "goldy_refreshed_at": "2026-09-24T15:22:44.094176+00:00",
   "other_engines_captured_at": "2026-09-24T01:17:44.990645+00:00",
-  "note": "Goldy rows were refreshed at `20260924T142940Z` after the CUDA GEMV kernel and split-KV flash-decoding attention. Other engines are unchanged from `2026-09-24T01:17:44Z`."
+  "note": "Goldy rows were refreshed at `20260924T152244Z` after 8-wide split-KV attention, a parallel combine, and graph-captured small host uploads. Other engines are unchanged from `2026-09-24T01:17:44Z`."
 }

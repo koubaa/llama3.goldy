@@ -102,6 +102,11 @@ def render_markdown(groups: list[dict[str, Any]], metadata: dict[str, Any], skip
         "",
         "Informational throughput. Protocol: [`BENCHMARKS.md`](../BENCHMARKS.md).",
         "",
+    ]
+    if metadata.get("note"):
+        lines.extend([str(metadata["note"]), ""])
+    lines.extend(
+        [
         "## Machine",
         "",
         f"- captured: `{metadata.get('captured_at', '')}`",
@@ -113,7 +118,8 @@ def render_markdown(groups: list[dict[str, Any]], metadata: dict[str, Any], skip
         f"- llama3.cuda pin: `{metadata.get('llama3_cuda_commit', common.LLAMA3_CUDA_COMMIT)}`",
         f"- llama.cpp pin: `{metadata.get('llama_cpp_commit', common.LLAMA_CPP_COMMIT)}`",
         "",
-    ]
+        ]
+    )
     if skipped:
         lines.append("## Skipped engines")
         lines.append("")

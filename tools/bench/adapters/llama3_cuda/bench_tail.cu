@@ -5,6 +5,15 @@
 #define BENCH_MAX_STEPS 4096
 #define BENCH_TEXT_CAP (1 << 20)
 
+#ifdef _WIN32
+#define BENCH_EXECUTION "native"
+#define BENCH_EXECUTION_NOTE \
+    "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL"
+#else
+#define BENCH_EXECUTION "wsl"
+#define BENCH_EXECUTION_NOTE "WSL build of pinned llama3.cuda"
+#endif
+
 static double time_now_s(void) {
     struct timespec time;
     clock_gettime(CLOCK_MONOTONIC, &time);
@@ -157,6 +166,7 @@ static void generate_bench(Transformer *transformer, Tokenizer *tokenizer, Bench
     }
     memcpy(run->prompt, prompt_tokens, (size_t) num_prompt_tokens * sizeof(int));
 
+    int stop_on_bos = strcmp(args->mode, "compatibility") == 0;
     int token = prompt_tokens[0];
     int pos = 0;
     int first_forward_done = 0;
@@ -190,7 +200,7 @@ static void generate_bench(Transformer *transformer, Tokenizer *tokenizer, Bench
             compat_start = t1;
             first_forward_done = 1;
         }
-        if (next == 1) break;
+        if (stop_on_bos && next == 1) break;
 
         if (run->n_generated < BENCH_MAX_STEPS) {
             run->generated[run->n_generated++] = next;
@@ -226,10 +236,12 @@ static void emit_json(BenchArgs *args, Transformer *t, BenchRun *run, double loa
     double prompt_tok_s = (run->prompt_s > 0.0) ? ((double) (run->n_prompt - 1) / run->prompt_s) : 0.0;
     double decode_tok_s = (decode_s > 0.0) ? ((double) run->n_decode / decode_s) : 0.0;
     double legacy = (run->compat_elapsed_s > 0.0) ? ((double) (run->pos - 1) / run->compat_elapsed_s) : 0.0;
+    int is_compat = strcmp(args->mode, "compatibility") == 0;
+    int workload_decode_steps = is_compat ? (args->max_new_tokens - run->n_prompt) : args->decode_steps;
 
     fputs("{\"schema_version\":1,", stdout);
     fputs("\"engine\":\"llama3.cuda\",", stdout);
-    fputs("\"execution\":\"wsl\",", stdout);
+    fputs("\"execution\":\"" BENCH_EXECUTION "\",", stdout);
     fprintf(stdout, "\"checkpoint\":{\"path\":");
     json_escape(stdout, args->checkpoint_path);
     fprintf(stdout, ",\"sha256\":");
@@ -245,7 +257,7 @@ static void emit_json(BenchArgs *args, Transformer *t, BenchRun *run, double loa
     json_escape(stdout, args->prompt);
     fprintf(stdout,
             ",\"batch\":1,\"context_len\":%d,\"total_positions\":%d,\"decode_steps\":%d,\"sampling\":\"greedy\"}",
-            args->context_len, args->max_new_tokens, run->n_decode);
+            args->context_len, args->max_new_tokens, workload_decode_steps);
     fputs(",\"precision\":{\"weights\":\"fp32\",\"activations\":\"fp32\",\"kv\":\"fp32\",\"tf32\":false}", stdout);
     fputs(",\"tokens\":{\"prompt\":", stdout);
     json_ints(stdout, run->prompt, run->n_prompt);
@@ -262,7 +274,12 @@ static void emit_json(BenchArgs *args, Transformer *t, BenchRun *run, double loa
     fprintf(stdout,
             ",\"metrics\":{\"prompt_tok_s\":%.9g,\"decode_tok_s\":%.9g,\"legacy_compat_tok_s\":%.9g}",
             prompt_tok_s, decode_tok_s, legacy);
-    fputs(",\"engine_native_notes\":[\"WSL copy of pinned llama3.cuda; CLOCK_MONOTONIC; -O3 splice\"]", stdout);
+    fputs(",\"engine_native_notes\":[\"" BENCH_EXECUTION_NOTE "\","
+          "\"bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward\","
+          "\"load_s includes tokenizer load and cuBLAS handle creation\"",
+          stdout);
+    if (!is_compat) fputs(",\"scaling pads/trims prompt tokens to context_len; filler is last non-BOS id\"", stdout);
+    fputs("]", stdout);
     fputs(",\"build\":{\"opt\":\"-O3\",\"cublas\":true}", stdout);
     fputs(",\"replay_stats\":null}\n", stdout);
     fflush(stdout);
@@ -327,23 +344,39 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (strcmp(args.mode, "scaling") == 0) {
-        if (args.context_len <= 0) args.context_len = 8;
-        args.max_new_tokens = args.context_len + args.decode_steps;
+    int scaling = strcmp(args.mode, "scaling") == 0;
+    if (!scaling && strcmp(args.mode, "compatibility") != 0) {
+        fprintf(stderr, "unknown mode %s\n", args.mode);
+        return 1;
     }
 
     double t_load0 = time_now_s();
     Transformer transformer;
     build_transformer(&transformer, (char *) args.checkpoint_path);
-    if (args.max_new_tokens > transformer.config.max_seq_len)
-        args.max_new_tokens = transformer.config.max_seq_len;
+    int max_seq_len = transformer.config.max_seq_len;
+    if (scaling) {
+        // Context is min(requested, max_seq_len); the loop runs forwards at 0 .. max_new_tokens-2,
+        // so max_seq_len + 1 still keeps every KV row inside the cache.
+        if (args.context_len <= 0) args.context_len = 8;
+        if (args.context_len > max_seq_len) args.context_len = max_seq_len;
+        args.max_new_tokens = args.context_len + args.decode_steps;
+        if (args.max_new_tokens > max_seq_len + 1) args.max_new_tokens = max_seq_len + 1;
+    } else {
+        if (args.max_new_tokens > max_seq_len) args.max_new_tokens = max_seq_len;
+        args.context_len = args.max_new_tokens;
+    }
+    if (args.max_new_tokens > BENCH_MAX_STEPS) {
+        fprintf(stderr, "total positions %d exceed BENCH_MAX_STEPS %d\n", args.max_new_tokens, BENCH_MAX_STEPS);
+        return 1;
+    }
     Tokenizer tokenizer;
     build_tokenizer(&tokenizer, (char *) args.tokenizer_path, transformer.config.vocab_size);
     create_cublas_handle();
     CUDA_CHECK(cudaDeviceSynchronize());
     double load_s = time_now_s() - t_load0;
 
-    BenchRun run;
+    // ~1.1 MB: too large for the default 1 MB Windows main-thread stack.
+    static BenchRun run;
     double warmup_s = 0.0;
     int saved_json = args.json;
     for (int w = 0; w < args.warmups; w++) {

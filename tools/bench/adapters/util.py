@@ -53,14 +53,57 @@ def run(
     )
 
 
+WSL_DISTRO_ENV = "KOBA_BENCH_WSL_DISTRO"
+DEFAULT_WSL_DISTRO = "Ubuntu"
+# Login shells in a fresh distro do not necessarily have the CUDA toolkit on PATH.
+WSL_CUDA_PATH = "export PATH=/usr/local/cuda/bin:$PATH; "
+
+
 def wsl_available() -> bool:
     return which("wsl") is not None
 
 
-def wsl_bash(script: str, *, check: bool = True, capture: bool = False) -> subprocess.CompletedProcess:
+def wsl_distro() -> str:
+    return os.environ.get(WSL_DISTRO_ENV) or DEFAULT_WSL_DISTRO
+
+
+def wsl_bash_cmd(script: str, distro: str | None = None) -> list[str]:
+    # The default distro may be docker-desktop, which has no bash; always name one.
+    return ["wsl", "-d", distro or wsl_distro(), "-e", "bash", "-lc", WSL_CUDA_PATH + script]
+
+
+def wsl_bash(
+    script: str,
+    *,
+    check: bool = True,
+    capture: bool = False,
+    timeout: float | None = None,
+) -> subprocess.CompletedProcess:
     if not wsl_available():
-        raise SystemExit("WSL is required for the llama3.cuda adapter")
-    return run(["wsl", "-e", "bash", "-lc", script], check=check, capture=capture)
+        raise SystemExit("WSL is required for the llama3.cuda WSL build")
+    return subprocess.run(
+        wsl_bash_cmd(script),
+        check=check,
+        capture_output=capture,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=timeout,
+    )
+
+
+def wsl_has_cuda_toolchain(timeout: float = 60.0) -> bool:
+    if not wsl_available():
+        return False
+    try:
+        proc = subprocess.run(
+            wsl_bash_cmd("command -v nvcc >/dev/null && command -v g++ >/dev/null"),
+            capture_output=True,
+            timeout=timeout,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return proc.returncode == 0
 
 
 def verify_ref_commit(repo: pathlib.Path, expected: str) -> None:

@@ -19,6 +19,9 @@ ROOT = TOOLS.parent
 sys.path.insert(0, str(TOOLS))
 
 from bench import common  # noqa: E402
+from bench.adapters.llama3_cuda import build as llama3_cuda_build  # noqa: E402
+from bench.adapters.llama_cpp import build as llama_cpp_build  # noqa: E402
+from bench.pytorch import env as torch_env  # noqa: E402
 from bench.report import write_report  # noqa: E402
 from bench.schema import validate_result  # noqa: E402
 
@@ -49,13 +52,11 @@ def capture_metadata() -> dict[str, Any]:
     rustc = _run_capture(["rustc", "--version"])
     cargo = _run_capture(["cargo", "--version"])
     nvcc = _run_capture(["nvcc", "--version"])
-    torch_ver = ""
-    try:
-        import torch
-
-        torch_ver = f"{torch.__version__} cuda={getattr(torch.version, 'cuda', None)}"
-    except ImportError:
-        torch_ver = "unavailable"
+    info = torch_env.probe()
+    if "error" in info:
+        torch_ver = info["error"]
+    else:
+        torch_ver = f"{info['torch']} cuda={info.get('cuda')} triton={info.get('triton')} ({info['python']})"
     return {
         "captured_at": datetime.now(timezone.utc).isoformat(),
         "hostname": platform.node(),
@@ -93,57 +94,31 @@ def engine_ready(engine: str) -> tuple[bool, str]:
             return False, "cargo not on PATH"
         return True, ""
     if engine.startswith("pytorch"):
-        try:
-            import torch
-        except ImportError:
-            return False, "torch not installed"
-        if engine == "pytorch-compile" and not torch.cuda.is_available():
-            return False, "torch.compile bench requires CUDA"
-        return True, ""
+        return torch_env.torch_ready(compile=engine == "pytorch-compile")
     if engine == "llama3.cuda":
-        if not _which("wsl"):
-            return False, "WSL not on PATH"
         src = common.REFS / "llama3.cuda" / "llama3.cu"
         if not src.exists():
             return False, f"missing {src}"
-        probe = subprocess.run(
-            ["wsl", "-e", "bash", "-lc", "command -v nvcc"],
-            capture_output=True,
-            text=True,
-        )
-        if probe.returncode != 0:
-            return False, "WSL bash/nvcc unavailable"
+        if llama3_cuda_build.detect_execution() is None:
+            return False, "no WSL nvcc/g++ toolchain and no native nvcc + vcvars64"
         return True, ""
     if engine.startswith("llama.cpp"):
-        if not _which("cmake"):
-            return False, "cmake not on PATH"
         src = common.REFS / "llama.cpp"
         if not src.exists():
             return False, f"missing {src}"
+        try:
+            for target in llama_cpp_build.TARGETS:
+                llama_cpp_build.find_exe(target)
+            return True, ""
+        except FileNotFoundError:
+            pass
         if os.name == "nt":
-            vswhere = pathlib.Path(
-                r"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
-            )
-            if not vswhere.exists():
-                return False, "Visual Studio 2022 not installed (needed for native llama.cpp CUDA)"
-            probe = subprocess.run(
-                [
-                    str(vswhere),
-                    "-latest",
-                    "-products",
-                    "*",
-                    "-version",
-                    "[17.0,18.0)",
-                    "-requires",
-                    "Microsoft.VisualStudio.Component.VC.Tools.x86.x64",
-                    "-property",
-                    "installationPath",
-                ],
-                capture_output=True,
-                text=True,
-            )
-            if probe.returncode != 0 or not probe.stdout.strip():
-                return False, "Visual Studio 2022 MSVC toolset not found"
+            try:
+                llama_cpp_build.find_vs()
+            except SystemExit as exc:
+                return False, str(exc)
+        elif not _which("cmake"):
+            return False, "cmake not on PATH"
         return True, ""
     return False, f"unknown engine {engine}"
 
@@ -171,16 +146,18 @@ def invoke_engine(
     reps: int,
 ) -> list[dict[str, Any]]:
     py = sys.executable
+    env = None
     if engine == "goldy":
         script = HERE / "adapters" / "goldy" / "run.py"
         cmd = [py, str(script)]
         if getattr(invoke_engine, "_goldy_built", False):
             cmd.append("--skip-build")
     elif engine.startswith("pytorch"):
-        script = HERE / "pytorch" / "bench.py"
-        cmd = [py, str(script)]
-        if engine == "pytorch-compile":
-            cmd.append("--compile")
+        compile = engine == "pytorch-compile"
+        cmd = torch_env.bench_command("--device", "cuda", compile=compile)
+        if compile:
+            cmd.append("--require-compile")
+        env = torch_env.bench_env(compile=compile)
     elif engine == "llama3.cuda":
         script = HERE / "adapters" / "llama3_cuda" / "run.py"
         cmd = [py, str(script)]
@@ -218,7 +195,7 @@ def invoke_engine(
     if context is not None:
         cmd.extend(["--context", str(context)])
 
-    proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+    proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, env=env)
     if proc.stderr:
         print(proc.stderr, file=sys.stderr, end="" if proc.stderr.endswith("\n") else "\n")
     if proc.returncode != 0:
@@ -356,21 +333,6 @@ def main(argv: list[str] | None = None) -> int:
         for job in jobs:
             ckpt = common.MODELS / job["checkpoint"]
             print(f"run {job['engine']} {job['mode']} {job['checkpoint']} ctx={job['context']}", file=sys.stderr)
-            if job["engine"].startswith("pytorch"):
-                try:
-                    import torch
-                    if not torch.cuda.is_available() and job["model"] != "15m":
-                        print(
-                            f"skip {job['engine']} {job['checkpoint']}: CPU torch reserved for 15M only",
-                            file=sys.stderr,
-                        )
-                        note = f"{job['engine']} {job['checkpoint']}: CPU torch reserved for 15M"
-                        if note not in seen_skip:
-                            skipped.append(note)
-                            seen_skip.add(note)
-                        continue
-                except ImportError:
-                    pass
             try:
                 rows = invoke_engine(
                     job["engine"],

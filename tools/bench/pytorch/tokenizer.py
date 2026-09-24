@@ -141,6 +141,10 @@ class Tokenizer:
 
 
 def sample_argmax(logits) -> int:
+    """Greedy argmax over host logits; the lowest index wins ties (llama3.cuda `>` scan)."""
+    if hasattr(logits, "argmax") and getattr(logits, "ndim", None) == 1:
+        # torch/numpy argmax both return the first maximal index.
+        return int(logits.argmax())
     best_i = 0
     best = float(logits[0])
     for i, value in enumerate(logits):

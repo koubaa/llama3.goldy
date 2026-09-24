@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "captured_at": "2026-09-23T04:56:06.231879+00:00",
+    "captured_at": "2026-09-24T01:17:44.990645+00:00",
     "hostname": "WIN-FAQM3SSHSGG",
     "os": "Windows 11 10.0.26200",
     "machine": "AMD64",
@@ -9,18 +9,12 @@
     "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
     "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
     "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_Dec_16_19:27:18_Pacific_Standard_Time_2025\nCuda compilation tools, release 13.1, V13.1.115\nBuild cuda_13.1.r13.1/compiler.37061995_0",
-    "torch": "2.14.0+cpu cuda=None",
+    "torch": "2.14.0+cu130 cuda=13.0 triton=3.8.0 (C:\\Dev\\kob3\\llama3.goldy\\tools\\bench\\.cache\\torch-venv\\Scripts\\python.exe)",
     "cwd": "C:\\Dev\\kob3\\llama3.goldy",
     "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
     "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2"
   },
-  "skipped": [
-    "pytorch-compile: torch.compile bench requires CUDA",
-    "llama3.cuda: WSL bash/nvcc unavailable",
-    "llama.cpp: Visual Studio 2022 MSVC toolset not found",
-    "llama.cpp-bench: Visual Studio 2022 MSVC toolset not found",
-    "pytorch-eager stories42M.bin / stories110M.bin: CPU torch reserved for 15M"
-  ],
+  "skipped": [],
   "groups": [
     {
       "engine": "goldy",
@@ -32,45 +26,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 508.10372514128994,
-        "p10": 498.8669186889746,
-        "p90": 516.3165267946029,
+        "median": 523.7075878683137,
+        "p10": 516.4887519511257,
+        "p90": 541.6035738287538,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 514.4526909305421,
-        "p10": 505.7080227028114,
-        "p90": 523.5161486774459,
+        "median": 529.7751281172851,
+        "p10": 521.8995663513601,
+        "p90": 549.4506085306446,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 475.8336009897339,
-        "p10": 474.1968767847803,
-        "p90": 517.4974579569542,
+        "median": 541.8879375745096,
+        "p10": 519.3452880221903,
+        "p90": 550.9656210409454,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0101677,
-        "p10": 0.00969578,
-        "p90": 0.010212579999999999,
+        "median": 0.0092337,
+        "p10": 0.009066900000000001,
+        "p90": 0.009418739999999998,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0084063,
-        "p10": 0.007742860000000001,
-        "p90": 0.00843534,
+        "median": 0.0073816,
+        "p10": 0.00726048,
+        "p90": 0.00770552,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0018146,
-        "p10": 0.0017914000000000003,
-        "p90": 0.00183188,
+        "median": 0.0018373,
+        "p10": 0.0017814600000000001,
+        "p90": 0.0018720199999999998,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.3952811,
-        "p10": 0.39528110000000005,
-        "p90": 0.39528110000000005,
+        "median": 0.4179597,
+        "p10": 0.41795970000000005,
+        "p90": 0.4179597,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -88,6 +82,188 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "compatibility",
+      "context_len": 50,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": false,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 2064.758329422806,
+        "p10": 2062.4362019670352,
+        "p90": 2097.968420312517,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1818.1818181818182,
+        "p10": 1797.3281199087653,
+        "p90": 1828.837828837829,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.00275,
+        "p10": 0.002734,
+        "p90": 0.0027819999999999998,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.00275,
+        "p10": 0.002734,
+        "p90": 0.0027819999999999998,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0004843181818181818,
+        "p10": 0.0004766818181818182,
+        "p90": 0.00048486363636363636,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.09498100000000001,
+        "p10": 0.0915386,
+        "p90": 0.09733060000000002,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "EOS stops generation (llama3.cuda stops on BOS)",
+        "generated text does not match llama3.cuda DREAM_STORY (engine-native tokenizer)"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "compatibility",
+      "context_len": 50,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1078.86261,
+        "p10": 1051.9147699999999,
+        "p90": 1091.14581,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1095.01839,
+        "p10": 1081.427862,
+        "p90": 1108.015494,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1159.8237,
+        "p10": 987.7869448,
+        "p90": 1169.418972,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0043579,
+        "p10": 0.00430941996,
+        "p90": 0.00498094,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.00344880001,
+        "p10": 0.0034205599780000005,
+        "p90": 0.0040767999459999996,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.000876699982,
+        "p10": 0.0008692600180000001,
+        "p90": 0.0008809399676000001,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0800825,
+        "p10": 0.0800825,
+        "p90": 0.0800825,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "compatibility",
+      "context_len": 50,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1318.492961737156,
+        "p10": 1270.5182217088582,
+        "p90": 1330.7505839044265,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1459.7498404383655,
+        "p10": 1389.3269235848538,
+        "p90": 1462.4647034091831,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1449.6430571905416,
+        "p10": 1368.9319041700094,
+        "p90": 1504.9493173776743,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.003442400018684566,
+        "p10": 0.003293200000189245,
+        "p90": 0.0035884000128135088,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0027592999394983053,
+        "p10": 0.0026588199660182,
+        "p90": 0.002924419939517975,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0006667000125162303,
+        "p10": 0.000663579988759011,
+        "p90": 0.0006698999903164804,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.13602859998354688,
+        "p10": 0.13602859998354688,
+        "p90": 0.13602859998354688,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "pytorch-eager",
       "execution": "native",
       "checkpoint": "stories15M.bin",
@@ -97,50 +273,48 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 31.492229784546755,
-        "p10": 30.78918526892696,
-        "p90": 32.74456120506136,
+        "median": 431.4626132666722,
+        "p10": 429.34722827318876,
+        "p90": 431.6821113220873,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 340.00113351286274,
-        "p10": 334.651487176145,
-        "p90": 347.6292522569293,
+        "median": 443.03155731565533,
+        "p10": 440.76996548700373,
+        "p90": 443.60928980111294,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 473.0424872416434,
-        "p10": 325.5437132159707,
-        "p90": 498.1801053969323,
+        "median": 464.8784355687856,
+        "p10": 449.57330036160465,
+        "p90": 473.33940846310657,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.011423899966757745,
-        "p10": 0.010211099998559804,
-        "p90": 0.016056059987749904,
+        "median": 0.010656900005415082,
+        "p10": 0.010633540013805032,
+        "p90": 0.010937780002132058,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.008455900067929178,
-        "p10": 0.008034540025983005,
-        "p90": 0.012776539998594672,
+        "median": 0.008604399976320565,
+        "p10": 0.008451280021108686,
+        "p90": 0.008899839990772308,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.002629399998113513,
-        "p10": 0.002586920000612736,
-        "p90": 0.0026883599814027546,
+        "median": 0.002133100002538413,
+        "p10": 0.0021307799848727885,
+        "p90": 0.0021484599797986447,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.767736200010404,
-        "p10": 0.767736200010404,
-        "p90": 0.767736200010404,
+        "median": 0.1371858000056818,
+        "p10": 0.1371858000056818,
+        "p90": 0.1371858000056818,
         "n": 3.0
       },
-      "engine_native_notes": [
-        "cuda requested but unavailable; using cpu"
-      ],
+      "engine_native_notes": [],
       "replay_stats": null
     },
     {
@@ -153,45 +327,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 121.79613873023096,
-        "p10": 121.75693801442117,
-        "p90": 122.44450286131033,
+        "median": 124.49008577932776,
+        "p10": 123.1735605609903,
+        "p90": 124.86728796523609,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 122.00627112233569,
-        "p10": 121.74454293705654,
-        "p90": 122.93752866030846,
+        "median": 124.89033067837303,
+        "p10": 122.03791111290347,
+        "p90": 125.45501766496523,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 123.74224843200894,
-        "p10": 122.08406113654596,
-        "p90": 123.75852572967626,
+        "median": 125.07929133647221,
+        "p10": 124.49713446995203,
+        "p90": 128.07069816423962,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.065047,
-        "p10": 0.06496276000000001,
-        "p90": 0.06528948,
+        "median": 0.0638572,
+        "p10": 0.0628244,
+        "p90": 0.06504504,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0565692,
-        "p10": 0.056561759999999996,
-        "p90": 0.05734016000000001,
+        "median": 0.05596450000000001,
+        "p10": 0.0546649,
+        "p90": 0.0562265,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00819815,
-        "p10": 0.00809987,
-        "p90": 0.00820399,
+        "median": 0.00782455,
+        "p10": 0.00781747,
+        "p90": 0.00807467,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.5735872,
-        "p10": 0.5735872,
-        "p90": 0.5735872,
+        "median": 0.6159469,
+        "p10": 0.6159469,
+        "p90": 0.6159469,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -210,6 +384,309 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 463.9653572533251,
+        "p10": 460.1025296692141,
+        "p90": 467.9102955832065,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 453.0011325028313,
+        "p10": 438.426313457088,
+        "p90": 455.064918983482,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.01766,
+        "p10": 0.01758,
+        "p90": 0.018252,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.01766,
+        "p10": 0.01758,
+        "p90": 0.018252,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0021553333333333333,
+        "p10": 0.0021371999999999997,
+        "p90": 0.002173466666666667,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.226771,
+        "p10": 0.22241660000000002,
+        "p90": 0.2279982,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 456.8674313485299,
+        "p10": 456.8528209831046,
+        "p90": 461.53928005843966,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00218881875,
+        "p10": 0.0021667187500000002,
+        "p90": 0.00218888875,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=8"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 417.588842,
+        "p10": 405.8774412,
+        "p90": 429.57254759999995,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 414.824801,
+        "p10": 407.1616866,
+        "p90": 432.5188706,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 432.662292,
+        "p10": 414.5549512,
+        "p90": 435.6726992,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0184293,
+        "p10": 0.01832826,
+        "p90": 0.01916506,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0161789001,
+        "p10": 0.0160673001,
+        "p90": 0.01689338002,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00228450002,
+        "p10": 0.002262980016,
+        "p90": 0.0023027400160000005,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1864848,
+        "p10": 0.1864848,
+        "p90": 0.1864848,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 456.6361691783392,
+        "p10": 455.83570643458893,
+        "p90": 457.92210882919534,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 468.1798625015038,
+        "p10": 467.8863758124544,
+        "p90": 470.6410211963398,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 473.4304105911024,
+        "p10": 466.93493197609007,
+        "p90": 477.83833199649814,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.017064400017261505,
+        "p10": 0.016757919965311886,
+        "p90": 0.01708672000095248,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.014785699953790754,
+        "p10": 0.014649619942065328,
+        "p90": 0.01499209994217381,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.002101100020809099,
+        "p10": 0.0021001000131946057,
+        "p90": 0.0021035800164099783,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.40418750001117587,
+        "p10": 0.40418750001117587,
+        "p90": 0.40418750001117587,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 253.71285712622105,
+        "p10": 243.62837311822477,
+        "p90": 256.84966518096934,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 259.1848639624061,
+        "p10": 246.56886657820795,
+        "p90": 260.33217474304575,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 254.69827389712043,
+        "p10": 250.30737451877883,
+        "p90": 262.7920390996281,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.03126889996929094,
+        "p10": 0.03056394000304863,
+        "p90": 0.032567379984539,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.02748349995817989,
+        "p10": 0.026643499988131227,
+        "p90": 0.02796773996669799,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0038593999634031206,
+        "p10": 0.003750520019093528,
+        "p90": 0.003901080001378432,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.4216076000011526,
+        "p10": 0.4216076000011526,
+        "p90": 0.4216076000011526,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "goldy",
       "execution": "native",
       "checkpoint": "stories110M.bin",
@@ -219,45 +696,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 120.04090785372858,
-        "p10": 119.76480985496387,
-        "p90": 120.1731337312952,
+        "median": 129.84472546732104,
+        "p10": 126.35652845880519,
+        "p90": 129.87546310980971,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 119.58941962507222,
-        "p10": 119.35352525998013,
-        "p90": 119.63692461084138,
+        "median": 128.37516357804046,
+        "p10": 121.57572754611111,
+        "p90": 128.81707784508762,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 120.12524025048049,
-        "p10": 120.04397926647012,
-        "p90": 120.93525371074625,
+        "median": 130.74789907105728,
+        "p10": 129.3424418640794,
+        "p90": 130.91001213686008,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.2657533,
-        "p10": 0.26556042,
-        "p90": 0.26590450000000004,
+        "median": 0.2448416,
+        "p10": 0.24445408000000002,
+        "p90": 0.24765295999999998,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.258064,
-        "p10": 0.2563384,
-        "p90": 0.25823872000000003,
+        "median": 0.2370975,
+        "p10": 0.23680397999999997,
+        "p90": 0.23968086,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.008110550000000001,
-        "p10": 0.00809339,
-        "p90": 0.008139110000000001,
+        "median": 0.0077468,
+        "p10": 0.007720640000000001,
+        "p90": 0.00824028,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.5727011,
-        "p10": 0.5727011,
-        "p90": 0.5727011,
+        "median": 0.590103,
+        "p10": 0.590103,
+        "p90": 0.590103,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -276,6 +753,309 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 468.6035613870666,
+        "p10": 452.67973112276184,
+        "p90": 470.72353979861975,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 473.86346808825704,
+        "p10": 454.0205184843368,
+        "p90": 475.1590234839218,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.06753,
+        "p10": 0.067346,
+        "p90": 0.07051400000000001,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.06753,
+        "p10": 0.067346,
+        "p90": 0.07051400000000001,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0021339999999999996,
+        "p10": 0.0021244,
+        "p90": 0.0022097333333333333,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.222728,
+        "p10": 0.21866000000000002,
+        "p90": 0.2265464,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 469.6709954676749,
+        "p10": 433.7920960103866,
+        "p90": 471.33942025889155,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00212915,
+        "p10": 0.0021216200000000003,
+        "p90": 0.00230897,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=32"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 416.536876,
+        "p10": 409.94116560000003,
+        "p90": 418.7505976,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 418.118104,
+        "p10": 403.43812720000005,
+        "p90": 424.1379016,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 422.197224,
+        "p10": 406.59183920000004,
+        "p90": 427.2123952,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0757357,
+        "p10": 0.07486682,
+        "p90": 0.07857106,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0734254,
+        "p10": 0.07256596,
+        "p90": 0.07627083992000001,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.002322399985,
+        "p10": 0.0022922000130000003,
+        "p90": 0.002322639989,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1921173,
+        "p10": 0.1921173,
+        "p90": 0.1921173,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 452.51895664431237,
+        "p10": 449.788619274049,
+        "p90": 455.00422264610717,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 466.0049384761145,
+        "p10": 457.7321098898122,
+        "p90": 468.18926910317293,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 453.84605349653305,
+        "p10": 453.61816080740647,
+        "p90": 458.53457655935347,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0703914999612607,
+        "p10": 0.06969309999840334,
+        "p90": 0.07042118000099436,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.06830509984865785,
+        "p10": 0.06760845994576811,
+        "p90": 0.06833941987715661,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.002085100015392527,
+        "p10": 0.00206834000418894,
+        "p90": 0.002116299996851012,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.4289398000109941,
+        "p10": 0.4289398000109941,
+        "p90": 0.4289398000109941,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 189.50449928754705,
+        "p10": 183.6207360428857,
+        "p90": 200.21421749441288,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 189.25146306495384,
+        "p10": 182.67550669878057,
+        "p90": 192.18672429628785,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 191.11134965487642,
+        "p10": 185.69638908003583,
+        "p90": 206.74082868274675,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.1678974000387825,
+        "p10": 0.15535780001664534,
+        "p90": 0.17324532001512125,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.1622090998571366,
+        "p10": 0.15017365999519827,
+        "p90": 0.1669739000033587,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.005371649953303859,
+        "p10": 0.005100649985251948,
+        "p90": 0.005437609989894555,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.42202380002709106,
+        "p10": 0.42202380002709106,
+        "p90": 0.42202380002709106,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "goldy",
       "execution": "native",
       "checkpoint": "stories110M.bin",
@@ -285,45 +1065,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 118.04724583305692,
-        "p10": 116.28294827401712,
-        "p90": 118.15909488842303,
+        "median": 120.4582673605176,
+        "p10": 120.24178852241646,
+        "p90": 120.90203270375464,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 112.88146881367221,
-        "p10": 108.19754281621829,
-        "p90": 113.13210125523705,
+        "median": 118.93726579579807,
+        "p10": 118.81682317382975,
+        "p90": 119.8664541176978,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 118.75703834159818,
-        "p10": 117.42854223229637,
-        "p90": 118.87530607786867,
+        "median": 120.8076189084661,
+        "p10": 120.39444078137066,
+        "p90": 121.26778584530643,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 1.077718,
-        "p10": 1.0775932,
-        "p90": 1.09066472,
+        "median": 1.0595992,
+        "p10": 1.05563776,
+        "p90": 1.06371384,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 1.0694103,
-        "p10": 1.0683466199999998,
-        "p90": 1.0815431000000002,
+        "median": 1.0512581999999997,
+        "p10": 1.0472728399999998,
+        "p90": 1.0548690799999996,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.008965850000000001,
-        "p10": 0.00888125,
-        "p90": 0.00909213,
+        "median": 0.00831885,
+        "p10": 0.00823809,
+        "p90": 0.00833053,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.571483,
-        "p10": 0.571483,
-        "p90": 0.571483,
+        "median": 0.5906882,
+        "p10": 0.5906882,
+        "p90": 0.5906882,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -342,6 +1122,309 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 469.4835680751174,
+        "p10": 468.7795627246768,
+        "p90": 478.5120982304081,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 474.8126715631724,
+        "p10": 474.61550776658675,
+        "p90": 475.9999682636652,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.26958,
+        "p10": 0.26890800000000004,
+        "p90": 0.269692,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.26958,
+        "p10": 0.26890800000000004,
+        "p90": 0.269692,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00213,
+        "p10": 0.00209,
+        "p90": 0.0021331999999999996,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.215009,
+        "p10": 0.2137698,
+        "p90": 0.22244180000000002,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 471.7300996235004,
+        "p10": 461.589086060012,
+        "p90": 474.45108333988463,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00211985625,
+        "p10": 0.0021077162500000002,
+        "p90": 0.00216668625,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=128"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 420.243919,
+        "p10": 419.84660540000004,
+        "p90": 420.2635206,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 422.549346,
+        "p10": 416.37143240000006,
+        "p90": 422.9238196,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 420.750068,
+        "p10": 420.71360640000006,
+        "p90": 421.0697512,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.3042592,
+        "p10": 0.30404016,
+        "p90": 0.30429784000000004,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.3018419,
+        "p10": 0.30161278,
+        "p90": 0.30186806,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.002335799975,
+        "p10": 0.002326959999,
+        "p90": 0.0023431999829999998,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1896557,
+        "p10": 0.1896557,
+        "p90": 0.1896557,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 461.64029249845964,
+        "p10": 458.99659724382514,
+        "p90": 462.451535034415,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 457.66852342564323,
+        "p10": 452.7380939583115,
+        "p90": 462.2870579134486,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 464.6976172860471,
+        "p10": 462.18863225874844,
+        "p90": 465.098514309888,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.27553449996048585,
+        "p10": 0.27534833998652175,
+        "p90": 0.2770472200238146,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.2732959999702871,
+        "p10": 0.27306048008613293,
+        "p90": 0.27478159992024304,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0021274499886203557,
+        "p10": 0.0021228899771813304,
+        "p90": 0.0021348100213799625,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.39259310002671555,
+        "p10": 0.39259310002671555,
+        "p90": 0.39259310002671555,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 241.70200425070288,
+        "p10": 241.22358851525712,
+        "p90": 249.0301304623763,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 245.10592397093225,
+        "p10": 239.13045277041402,
+        "p90": 252.29387521512186,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 242.9085526456644,
+        "p10": 241.61319774314282,
+        "p90": 249.59206452918244,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.5267329000052996,
+        "p10": 0.5126820200239308,
+        "p90": 0.5298255399917252,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.5228304998599924,
+        "p10": 0.5089233799953945,
+        "p90": 0.5256373001844622,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.003957949986215681,
+        "p10": 0.0038527099764905873,
+        "p90": 0.004013910016510636,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.38335950003238395,
+        "p10": 0.38335950003238395,
+        "p90": 0.38335950003238395,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "goldy",
       "execution": "native",
       "checkpoint": "stories110M.bin",
@@ -351,45 +1434,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 112.94366692589928,
-        "p10": 112.8606966391807,
-        "p90": 113.75373835735944,
+        "median": 119.68200792214435,
+        "p10": 119.20331229916937,
+        "p90": 119.68801706605699,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 106.1595777502795,
-        "p10": 106.0162982667595,
-        "p90": 106.96918574235522,
+        "median": 111.7756327723361,
+        "p10": 105.83111905467102,
+        "p90": 111.82519811654478,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 113.57928460534154,
-        "p10": 113.49566616846754,
-        "p90": 114.38317443939155,
+        "median": 120.37248103715086,
+        "p10": 120.37013677855403,
+        "p90": 120.39285646293291,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 1.9721614,
-        "p10": 1.95876164,
-        "p90": 1.97359164,
+        "median": 1.8615831,
+        "p10": 1.8613478200000002,
+        "p90": 1.8617655000000002,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 1.9633861999999997,
-        "p10": 1.9496116399999992,
-        "p90": 1.9648330000000003,
+        "median": 1.8525829000000005,
+        "p10": 1.8522693800000012,
+        "p90": 1.8526189799999997,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0097847,
-        "p10": 0.00951678,
-        "p90": 0.009790459999999999,
+        "median": 0.008808449999999999,
+        "p10": 0.00879141,
+        "p90": 0.00935305,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.5652216,
-        "p10": 0.5652216,
-        "p90": 0.5652216,
+        "median": 0.5740232,
+        "p10": 0.5740232,
+        "p90": 0.5740232,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -408,6 +1491,309 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 464.5401052957572,
+        "p10": 463.96553497380825,
+        "p90": 467.67379245203097,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 472.44426634045516,
+        "p10": 453.0466186848745,
+        "p90": 472.77936856225836,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.47413,
+        "p10": 0.473794,
+        "p90": 0.4946499999999999,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.47413,
+        "p10": 0.473794,
+        "p90": 0.4946499999999999,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0021526666666666664,
+        "p10": 0.002138266666666667,
+        "p90": 0.0021553333333333333,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.218107,
+        "p10": 0.21793260000000003,
+        "p90": 0.2219566,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 462.3489058224175,
+        "p10": 456.94485163915533,
+        "p90": 471.6110853513291,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00216286875,
+        "p10": 0.00212059875,
+        "p90": 0.00218852375,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=224"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 398.159966,
+        "p10": 393.40980520000005,
+        "p90": 401.2415548,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 379.943722,
+        "p10": 375.3010276,
+        "p90": 387.16911319999997,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 399.791606,
+        "p10": 394.90899800000005,
+        "p90": 402.74196120000005,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.5604056,
+        "p10": 0.55630616,
+        "p90": 0.56796912,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.5577906,
+        "p10": 0.55371188,
+        "p90": 0.56470844,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00243875,
+        "p10": 0.002416389996,
+        "p90": 0.00245391,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1801128,
+        "p10": 0.18011280000000002,
+        "p90": 0.1801128,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 433.3868086383374,
+        "p10": 430.75704073716474,
+        "p90": 451.45382601582173,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 406.5216221199327,
+        "p10": 379.6774905769077,
+        "p90": 446.6178111314882,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 440.1649095987105,
+        "p10": 434.89004671326785,
+        "p90": 453.98034845816267,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.5091051000053994,
+        "p10": 0.4937246200046502,
+        "p90": 0.5152502199984156,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.5066283002961427,
+        "p10": 0.49132710029371085,
+        "p90": 0.5127919800113887,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.002330450020963326,
+        "p10": 0.0021623299981001765,
+        "p90": 0.002408850012579933,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.40568049997091293,
+        "p10": 0.40568049997091293,
+        "p90": 0.40568049997091293,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 247.467899096934,
+        "p10": 242.75045759014768,
+        "p90": 249.03775133882826,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 233.86103140371063,
+        "p10": 212.07256247751843,
+        "p90": 247.5118059919197,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 249.56957643095507,
+        "p10": 244.05247598930077,
+        "p90": 251.18285728403646,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.8977520000189543,
+        "p10": 0.891770560014993,
+        "p90": 0.9186527200043202,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.8935383999487385,
+        "p10": 0.8878086400451138,
+        "p90": 0.9138527201255784,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.003952000028220937,
+        "p10": 0.0039087200013455,
+        "p90": 0.004149719997076318,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.39628250000532717,
+        "p10": 0.39628250000532717,
+        "p90": 0.39628250000532717,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "goldy",
       "execution": "native",
       "checkpoint": "stories15M.bin",
@@ -417,45 +1803,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 527.4173093566228,
-        "p10": 501.9423630494382,
-        "p90": 538.6982354796836,
+        "median": 525.6367372294166,
+        "p10": 512.569651532113,
+        "p90": 529.8582707529927,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 533.9776663841035,
-        "p10": 508.33770618464484,
-        "p90": 541.9476665421615,
+        "median": 529.4927459493804,
+        "p10": 511.68866693241495,
+        "p90": 537.8158910085855,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 512.2988312268094,
-        "p10": 506.42147644611646,
-        "p90": 538.1048710724652,
+        "median": 536.9127516778524,
+        "p10": 519.3138460801731,
+        "p90": 550.140298596165,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0153938,
-        "p10": 0.01472932,
-        "p90": 0.015653880000000002,
+        "median": 0.0154082,
+        "p10": 0.014624680000000001,
+        "p90": 0.01560348,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0136639,
-        "p10": 0.01301638,
-        "p90": 0.01382294,
+        "median": 0.0130375,
+        "p10": 0.012725900000000002,
+        "p90": 0.013483099999999998,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00174405,
-        "p10": 0.00174157,
-        "p90": 0.00182981,
+        "median": 0.00183985,
+        "p10": 0.0018312100000000002,
+        "p90": 0.0018500500000000002,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4051028,
-        "p10": 0.40510280000000004,
-        "p90": 0.4051028,
+        "median": 0.3829546,
+        "p10": 0.38295460000000003,
+        "p90": 0.38295460000000003,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -474,6 +1860,253 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 2051.983584131327,
+        "p10": 2049.7409791213477,
+        "p90": 2091.0689857338284,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1913.8755980861245,
+        "p10": 1878.1022224209632,
+        "p90": 1921.2366580787632,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.00418,
+        "p10": 0.004164000000000001,
+        "p90": 0.00426,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.00418,
+        "p10": 0.004164000000000001,
+        "p90": 0.00426,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0004873333333333333,
+        "p10": 0.00047826666666666667,
+        "p90": 0.00048786666666666664,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.09358799999999999,
+        "p10": 0.09080880000000001,
+        "p90": 0.09980720000000001,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "engine-native",
+      "n": 6,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "decode_tok_s": {
+        "median": 1939.4931257303106,
+        "p10": 1739.517887241443,
+        "p90": 2121.593925340623,
+        "n": 6.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0005174812500000001,
+        "p10": 0.00047135,
+        "p90": 0.00057584375,
+        "n": 6.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=8"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1060.18476,
+        "p10": 1022.286608,
+        "p90": 1098.8700000000001,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1065.09742,
+        "p10": 1013.6049160000001,
+        "p90": 1098.9062040000001,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1110.30042,
+        "p10": 1107.0438120000001,
+        "p90": 1170.248364,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.00717549998,
+        "p10": 0.006849179964,
+        "p90": 0.007214459996000001,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.00630459999,
+        "p10": 0.005985720022000001,
+        "p90": 0.00632315999,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0008933999925,
+        "p10": 0.0008871599917,
+        "p90": 0.0009045999849000001,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0801765,
+        "p10": 0.0801765,
+        "p90": 0.08017649999999998,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1333.6808991220307,
+        "p10": 1331.0742032064893,
+        "p90": 1354.1090608134386,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1447.426761475386,
+        "p10": 1424.508805018591,
+        "p90": 1457.9122782223276,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1390.7929762407591,
+        "p10": 1386.9377540426874,
+        "p90": 1458.2239378457784,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.005665799952112138,
+        "p10": 0.005437719984911383,
+        "p90": 0.005731400032527745,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.005033099907450378,
+        "p10": 0.004803019925020635,
+        "p90": 0.0050470999674871566,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0006783499848097563,
+        "p10": 0.0006658299826085569,
+        "p90": 0.0006821499904617667,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.13125679997028783,
+        "p10": 0.13125679997028783,
+        "p90": 0.13125679997028783,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "pytorch-eager",
       "execution": "native",
       "checkpoint": "stories15M.bin",
@@ -483,49 +2116,48 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 39.03309350235321,
-        "p10": 36.38517335153951,
-        "p90": 42.47043190607664,
+        "median": 435.72294358350536,
+        "p10": 433.72340286099273,
+        "p90": 446.81271297937286,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 337.9213196954767,
-        "p10": 303.5615883003073,
-        "p90": 361.21342960336864,
+        "median": 446.30404625823394,
+        "p10": 443.0298322942651,
+        "p90": 458.75448885638906,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 375.4075850884112,
-        "p10": 341.42603404905964,
-        "p90": 435.0758613814469,
+        "median": 452.7052375695732,
+        "p10": 441.7108806362706,
+        "p90": 457.44860701702953,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.022153500001877546,
-        "p10": 0.018382380018010736,
-        "p90": 0.024234220013022424,
+        "median": 0.017507499956991524,
+        "p10": 0.017356299969833344,
+        "p90": 0.018029259971808643,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.018646400014404207,
-        "p10": 0.01617391995387152,
-        "p90": 0.020549599977675824,
+        "median": 0.015462599985767156,
+        "p10": 0.015302679978776724,
+        "p90": 0.015849880047608168,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0026326500228606164,
-        "p10": 0.002547850005794317,
-        "p90": 0.0034827299998141823,
+        "median": 0.002085649990476668,
+        "p10": 0.002084929984994233,
+        "p90": 0.0021679299883544446,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.7715857999864966,
-        "p10": 0.7715857999864967,
-        "p90": 0.7715857999864966,
+        "median": 0.13054449995979667,
+        "p10": 0.13054449995979667,
+        "p90": 0.13054449995979667,
         "n": 3.0
       },
       "engine_native_notes": [
-        "cuda requested but unavailable; using cpu",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": null
@@ -540,45 +2172,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 516.42860430679,
-        "p10": 496.9035500376379,
-        "p90": 518.938199245735,
+        "median": 538.872631596211,
+        "p10": 520.3537067665767,
+        "p90": 548.1550246432832,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 507.6995814651575,
-        "p10": 486.4131937596032,
-        "p90": 522.6451860306961,
+        "median": 539.5580345249697,
+        "p10": 518.7249852994198,
+        "p90": 539.6716023175441,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 520.7589641936215,
-        "p10": 506.76357442832654,
-        "p90": 525.7935775395881,
+        "median": 543.1954259440649,
+        "p10": 526.0779295565026,
+        "p90": 557.873755961388,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0612916,
-        "p10": 0.060776960000000005,
-        "p90": 0.0630628,
+        "median": 0.0588558,
+        "p10": 0.05739876000000001,
+        "p90": 0.06078876,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0595285,
-        "p10": 0.05895986000000001,
-        "p90": 0.06118394,
+        "median": 0.057069699999999994,
+        "p10": 0.05557794,
+        "p90": 0.05894186,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0018023499999999999,
-        "p10": 0.0017962300000000002,
-        "p90": 0.00187815,
+        "median": 0.00181205,
+        "p10": 0.00180393,
+        "p90": 0.0018872099999999998,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.3878153,
-        "p10": 0.38781530000000003,
-        "p90": 0.3878153,
+        "median": 0.3824886,
+        "p10": 0.3824886,
+        "p90": 0.3824886,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -597,6 +2229,253 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 2051.983584131327,
+        "p10": 2016.8224196375106,
+        "p90": 2117.366844849025,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 2144.7721179624664,
+        "p10": 2052.289870643857,
+        "p90": 2156.3498351984313,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.01492,
+        "p10": 0.01484,
+        "p90": 0.0156,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.01492,
+        "p10": 0.01484,
+        "p90": 0.0156,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0004873333333333333,
+        "p10": 0.0004724000000000001,
+        "p90": 0.0004958666666666666,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.090526,
+        "p10": 0.0900996,
+        "p90": 0.09122279999999999,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1870.2294537761102,
+        "p10": 1684.2191816444001,
+        "p90": 1929.142476832248,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00053469375,
+        "p10": 0.00051848875,
+        "p90": 0.0005954237499999999,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=32"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1078.16712,
+        "p10": 1043.856008,
+        "p90": 1079.450744,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1062.91811,
+        "p10": 1044.3303580000002,
+        "p90": 1097.796406,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1079.52626,
+        "p10": 1052.35842,
+        "p90": 1093.452084,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0298937,
+        "p10": 0.02933242,
+        "p90": 0.030409699999999998,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0287163,
+        "p10": 0.02835173992,
+        "p90": 0.02946246,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.000899400009,
+        "p10": 0.0008901200082,
+        "p90": 0.0009043600002000001,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0763248,
+        "p10": 0.0763248,
+        "p90": 0.0763248,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1281.2371166239839,
+        "p10": 1272.00267151955,
+        "p90": 1377.743888692694,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1358.4534158150673,
+        "p10": 1348.5425637101898,
+        "p90": 1440.3522930303416,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1320.5650318327455,
+        "p10": 1308.640186941818,
+        "p90": 1426.369661017996,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.02435749996220693,
+        "p10": 0.02253133998019621,
+        "p90": 0.024408059974666683,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.023474799992982298,
+        "p10": 0.02176519996719435,
+        "p90": 0.0236892000422813,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0006619499763473868,
+        "p10": 0.0006558700231835247,
+        "p90": 0.0006693099858239293,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.13847369997529313,
+        "p10": 0.13847369997529313,
+        "p90": 0.13847369997529313,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "pytorch-eager",
       "execution": "native",
       "checkpoint": "stories15M.bin",
@@ -606,49 +2485,48 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 75.68891723000765,
-        "p10": 74.3010667095272,
-        "p90": 77.76541063980576,
+        "median": 445.31614518183227,
+        "p10": 433.18013891960135,
+        "p90": 446.7347484945716,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 351.8726228610675,
-        "p10": 333.51132094716445,
-        "p90": 365.3584163217661,
+        "median": 438.8298576348664,
+        "p10": 427.1318859314829,
+        "p90": 440.7058508336287,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 401.2399606365066,
-        "p10": 396.857209113248,
-        "p90": 498.14405426475554,
+        "median": 455.9339809622734,
+        "p10": 444.5970622320079,
+        "p90": 458.56209200785383,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.07934880000539124,
-        "p10": 0.06486984002403916,
-        "p90": 0.08014424000866711,
+        "median": 0.07143670000368729,
+        "p10": 0.06995414003031329,
+        "p90": 0.07254974000388757,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.07726050005294383,
-        "p10": 0.06292801997624338,
-        "p90": 0.07811610009521246,
+        "median": 0.06799229996977374,
+        "p10": 0.06760318003362045,
+        "p90": 0.0697371800779365,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0025978999910876155,
-        "p10": 0.0024720999877899884,
-        "p90": 0.002709659980610013,
+        "median": 0.0021664999949280173,
+        "p10": 0.0021336600242648275,
+        "p90": 0.0022147800133097916,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.7687084999633953,
-        "p10": 0.7687084999633953,
-        "p90": 0.7687084999633953,
+        "median": 0.13100829999893904,
+        "p10": 0.13100829999893904,
+        "p90": 0.13100829999893904,
         "n": 3.0
       },
       "engine_native_notes": [
-        "cuda requested but unavailable; using cpu",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": null
@@ -663,45 +2541,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 489.6968810791816,
-        "p10": 488.41600862986536,
-        "p90": 489.9419711625916,
+        "median": 499.38280505431663,
+        "p10": 496.91970799721497,
+        "p90": 511.67576829738925,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 450.77787356807596,
-        "p10": 436.50309657003794,
-        "p90": 460.42523516476564,
+        "median": 454.36345100400115,
+        "p10": 451.434039150947,
+        "p90": 472.395083776917,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 495.0794173655927,
-        "p10": 494.8015452805035,
-        "p90": 497.19882109909383,
+        "median": 507.75627698704596,
+        "p10": 504.53012597773073,
+        "p90": 518.1611985973998,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.2587349,
-        "p10": 0.25860322,
-        "p90": 0.2590025,
+        "median": 0.252254,
+        "p10": 0.24722712,
+        "p90": 0.25381223999999997,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.25652450000000004,
-        "p10": 0.25543218,
-        "p90": 0.25666858,
+        "median": 0.2501200000000001,
+        "p10": 0.2451225600000001,
+        "p90": 0.25172191999999993,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0020461,
-        "p10": 0.00203974,
-        "p90": 0.00205526,
+        "median": 0.0020763500000000002,
+        "p10": 0.00206447,
+        "p90": 0.00209207,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.3836118,
-        "p10": 0.3836118,
-        "p90": 0.3836118,
+        "median": 0.3830378,
+        "p10": 0.38303780000000004,
+        "p90": 0.3830378,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -720,6 +2598,253 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 2133.712660028449,
+        "p10": 2133.712660028449,
+        "p90": 2145.9402397420795,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 2210.7081174438686,
+        "p10": 2208.877303267932,
+        "p90": 2211.624948182052,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0579,
+        "p10": 0.057876000000000004,
+        "p90": 0.057948,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0579,
+        "p10": 0.057876000000000004,
+        "p90": 0.057948,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0004686666666666667,
+        "p10": 0.00046600000000000005,
+        "p90": 0.0004686666666666667,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.09064900000000001,
+        "p10": 0.09008020000000001,
+        "p90": 0.09751060000000002,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1930.26903124623,
+        "p10": 1835.85445865954,
+        "p90": 2059.3439129214903,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0005180625,
+        "p10": 0.00048609250000000004,
+        "p90": 0.0005450524999999999,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=128"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1134.43448,
+        "p10": 1097.541768,
+        "p90": 1140.926168,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1153.26953,
+        "p10": 1117.3015540000001,
+        "p90": 1158.977194,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1136.34432,
+        "p10": 1094.198568,
+        "p90": 1148.105048,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.1127119,
+        "p10": 0.1115727,
+        "p90": 0.11700918,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.1117619,
+        "p10": 0.11061998,
+        "p90": 0.11610854,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0008514499645,
+        "p10": 0.0008434499964999999,
+        "p90": 0.0008546899888999999,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.080038,
+        "p10": 0.080038,
+        "p90": 0.080038,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1368.523007346026,
+        "p10": 1345.6079943827135,
+        "p90": 1381.4050700219525,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1382.349135601522,
+        "p10": 1354.7277776511473,
+        "p90": 1457.6085271856896,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1376.0627941388468,
+        "p10": 1362.6856383512059,
+        "p90": 1399.5118072483067,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.09305069997208193,
+        "p10": 0.09156950000906364,
+        "p90": 0.09398157998220995,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.09229229984339327,
+        "p10": 0.09075238003861161,
+        "p90": 0.09320054005365819,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0006757999944966286,
+        "p10": 0.0006584000017028302,
+        "p90": 0.0006997200136538595,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1386384999495931,
+        "p10": 0.1386384999495931,
+        "p90": 0.1386384999495931,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "pytorch-eager",
       "execution": "native",
       "checkpoint": "stories15M.bin",
@@ -729,49 +2854,48 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 155.0993668166808,
-        "p10": 145.40857200133053,
-        "p90": 166.090770122757,
+        "median": 417.41895166165324,
+        "p10": 416.26171265466036,
+        "p90": 424.1665954870042,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 336.4610193831543,
-        "p10": 287.5694088539531,
-        "p90": 350.1788845187551,
+        "median": 418.53700461254493,
+        "p10": 411.6703398427004,
+        "p90": 418.9605802190381,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 377.4907337029703,
-        "p10": 356.9025767578288,
-        "p90": 380.4688082731654,
+        "median": 419.0480078982337,
+        "p10": 418.54248717958524,
+        "p90": 427.04982995079683,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.3389504000078887,
-        "p10": 0.3358477599918842,
-        "p90": 0.358530559996143,
+        "median": 0.30547879997175187,
+        "p10": 0.2997329599922523,
+        "p90": 0.3058470399817452,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.33643209928413853,
-        "p10": 0.3338038599002175,
-        "p90": 0.3561233795131557,
+        "median": 0.30306790058966726,
+        "p10": 0.2974156600655988,
+        "p90": 0.3034340602578595,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00279515003785491,
-        "p10": 0.0026443500304594637,
-        "p90": 0.0038178700022399427,
+        "median": 0.0022915500157978386,
+        "p10": 0.0022553900198545307,
+        "p90": 0.002294910018099472,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.7751003000303172,
-        "p10": 0.7751003000303172,
-        "p90": 0.7751003000303172,
+        "median": 0.1463893000036478,
+        "p10": 0.1463893000036478,
+        "p90": 0.1463893000036478,
         "n": 3.0
       },
       "engine_native_notes": [
-        "cuda requested but unavailable; using cpu",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": null
@@ -786,45 +2910,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 465.73136849487753,
-        "p10": 465.04415413497884,
-        "p90": 466.5433774004116,
+        "median": 470.3687453803069,
+        "p10": 465.5955131488141,
+        "p90": 474.36142551835826,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 418.172741932533,
-        "p10": 413.93837629821235,
-        "p90": 425.29952452334345,
+        "median": 408.18096703173353,
+        "p10": 396.8457954788498,
+        "p90": 424.7675349694707,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 470.5212130163472,
-        "p10": 470.1692242711557,
-        "p90": 470.64380184092033,
+        "median": 476.27143114652836,
+        "p10": 469.51983728812706,
+        "p90": 482.03782338643373,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.4763968,
-        "p10": 0.47615992000000007,
-        "p90": 0.4771056,
+        "median": 0.4712103,
+        "p10": 0.4651394200000001,
+        "p90": 0.4774271,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.4739424999999997,
-        "p10": 0.47381906,
-        "p90": 0.4742973799999999,
+        "median": 0.4682204000000001,
+        "p10": 0.462636,
+        "p90": 0.4749775999999999,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00226605,
-        "p10": 0.0022619700000000003,
-        "p90": 0.0022782899999999997,
+        "median": 0.0023173,
+        "p10": 0.0022770200000000003,
+        "p90": 0.0023857,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.3991493,
-        "p10": 0.39914930000000004,
-        "p90": 0.3991493,
+        "median": 0.3910601,
+        "p10": 0.3910601,
+        "p90": 0.3910601,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -843,6 +2967,253 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1950.5851755526655,
+        "p10": 1893.8764336067736,
+        "p90": 1990.117035110533,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 2107.6401957094467,
+        "p10": 1969.8259482485078,
+        "p90": 2153.431006185477,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.10628,
+        "p10": 0.104032,
+        "p90": 0.113848,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.10628,
+        "p10": 0.104032,
+        "p90": 0.113848,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0005126666666666667,
+        "p10": 0.0005025333333333334,
+        "p90": 0.0005281333333333333,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.10326099999999999,
+        "p10": 0.09429059999999999,
+        "p90": 0.10489380000000001,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1757.3920302271429,
+        "p10": 1660.3253936522838,
+        "p90": 1875.7960357315144,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.000569025,
+        "p10": 0.000533665,
+        "p90": 0.000602785,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=224"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1116.42743,
+        "p10": 1112.5380460000001,
+        "p90": 1122.106302,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1103.07551,
+        "p10": 1094.1384779999998,
+        "p90": 1121.06603,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1119.98618,
+        "p10": 1116.9451,
+        "p90": 1124.6489,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.2001378,
+        "p10": 0.19931132000000001,
+        "p90": 0.2006026,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.1991096,
+        "p10": 0.19828496,
+        "p90": 0.19965208,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.000872799981,
+        "p10": 0.0008724400018000001,
+        "p90": 0.0008764000082000001,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0778518,
+        "p10": 0.0778518,
+        "p90": 0.0778518,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 1337.820465908179,
+        "p10": 1308.6583356502088,
+        "p90": 1377.7481072164433,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1398.7725603229585,
+        "p10": 1345.497533990639,
+        "p90": 1449.0566948181454,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1340.098320554921,
+        "p10": 1316.8564188035214,
+        "p90": 1387.602251561598,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.1672584000043571,
+        "p10": 0.16160888001322748,
+        "p90": 0.1702668000012636,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.1664057006710209,
+        "p10": 0.1607572205946781,
+        "p90": 0.16935570022324098,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0006708500150125474,
+        "p10": 0.0006642900116275996,
+        "p90": 0.000672570028109476,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.14196480001555756,
+        "p10": 0.14196480001555756,
+        "p90": 0.14196480001555756,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "pytorch-eager",
       "execution": "native",
       "checkpoint": "stories15M.bin",
@@ -852,49 +3223,48 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 191.90996294651885,
-        "p10": 188.2302397633394,
-        "p90": 197.06218674392665,
+        "median": 426.57765173901197,
+        "p10": 414.69885866708944,
+        "p90": 431.5120146806801,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 301.2320392648082,
-        "p10": 277.1393152543182,
-        "p90": 309.53311623221833,
+        "median": 418.88764341471636,
+        "p10": 343.97979462171566,
+        "p90": 446.6160599579995,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 340.7387217637362,
-        "p10": 337.8279358297668,
-        "p90": 369.9824898989191,
+        "median": 428.47667544973854,
+        "p10": 422.6276494720951,
+        "p90": 431.3553354275474,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.657243900001049,
-        "p10": 0.6078735799994319,
-        "p90": 0.6642274999991059,
+        "median": 0.522862299985718,
+        "p10": 0.51931621999247,
+        "p90": 0.5301229399978183,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.6544603995862417,
-        "p10": 0.6037336003384554,
-        "p90": 0.6601115202414802,
+        "median": 0.5204483995912597,
+        "p10": 0.5169809599639849,
+        "p90": 0.5276762399123982,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0029949999880045652,
-        "p10": 0.0027383600361645223,
-        "p90": 0.0031954400008544328,
+        "median": 0.0023316000297199935,
+        "p10": 0.002167599991662428,
+        "p90": 0.002420400030678138,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.77409219997935,
-        "p10": 0.77409219997935,
-        "p90": 0.77409219997935,
+        "median": 0.1421956000267528,
+        "p10": 0.1421956000267528,
+        "p90": 0.1421956000267528,
         "n": 3.0
       },
       "engine_native_notes": [
-        "cuda requested but unavailable; using cpu",
         "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
       ],
       "replay_stats": null
@@ -909,45 +3279,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 272.1034586823267,
-        "p10": 269.7346525224103,
-        "p90": 272.13254020901877,
+        "median": 284.7251431714498,
+        "p10": 284.2976111529432,
+        "p90": 284.8782442021286,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 274.5838338767805,
-        "p10": 271.92734434561754,
-        "p90": 276.986316182361,
+        "median": 284.0646815279839,
+        "p10": 283.92436284924474,
+        "p90": 288.87314142506244,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 267.7560512867591,
-        "p10": 259.2445068597393,
-        "p90": 269.4398425643146,
+        "median": 291.9184463266234,
+        "p10": 276.83417317215554,
+        "p90": 292.070473860358,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0295649,
-        "p10": 0.029328740000000002,
-        "p90": 0.03059346,
+        "median": 0.0274521,
+        "p10": 0.027419139999999998,
+        "p90": 0.02871386,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0261432,
-        "p10": 0.02598008,
-        "p90": 0.02700864,
+        "median": 0.0239793,
+        "p10": 0.02396682,
+        "p90": 0.02530394,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0034259,
-        "p10": 0.00342162,
-        "p90": 0.0034333799999999998,
+        "median": 0.0034185,
+        "p10": 0.0034180600000000005,
+        "p90": 0.0034685799999999998,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4437841,
-        "p10": 0.44378410000000007,
-        "p90": 0.4437841,
+        "median": 0.4302905,
+        "p10": 0.4302905000000001,
+        "p90": 0.4302905,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -966,6 +3336,309 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 967.741935483871,
+        "p10": 964.2612965380074,
+        "p90": 1017.7242112725984,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 966.1835748792272,
+        "p10": 884.3814233991717,
+        "p90": 998.268161516726,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.00828,
+        "p10": 0.008016,
+        "p90": 0.009064,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.00828,
+        "p10": 0.008016,
+        "p90": 0.009064,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0010333333333333334,
+        "p10": 0.0009832,
+        "p90": 0.0010370666666666669,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.133998,
+        "p10": 0.13029000000000002,
+        "p90": 0.1433756,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 942.9625525996298,
+        "p10": 900.5540201008142,
+        "p90": 956.2455313545087,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0010604875,
+        "p10": 0.0010458075000000001,
+        "p90": 0.0011110225,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=8"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 851.554669,
+        "p10": 842.8110298000001,
+        "p90": 881.8964362,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 861.224442,
+        "p10": 851.1531180000001,
+        "p90": 883.0835052,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 877.445883,
+        "p10": 869.6495558000001,
+        "p90": 920.5564254,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.00961519999,
+        "p10": 0.008810880014000001,
+        "p90": 0.009924159998,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.00797769998,
+        "p10": 0.007608420052000001,
+        "p90": 0.008049379964,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00112149998,
+        "p10": 0.001103900008,
+        "p90": 0.001121620008,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1109051,
+        "p10": 0.1109051,
+        "p90": 0.1109051,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 919.2943171259387,
+        "p10": 900.243725145921,
+        "p90": 941.291168495656,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 968.628533351257,
+        "p10": 936.8877446839699,
+        "p90": 991.5118505151299,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 984.4872758266682,
+        "p10": 981.2331444482475,
+        "p90": 997.3205410777384,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.008125399996060878,
+        "p10": 0.007990359992254526,
+        "p90": 0.00814212003024295,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.007110300124622881,
+        "p10": 0.007019099988974631,
+        "p90": 0.007133900071494281,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.001006399979814887,
+        "p10": 0.0010023200185969472,
+        "p90": 0.0010068400064483286,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.20995910000056028,
+        "p10": 0.2099591000005603,
+        "p90": 0.20995910000056028,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 299.307511407737,
+        "p10": 266.3681028527771,
+        "p90": 304.9820710065848,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 294.1500911519624,
+        "p10": 273.8295987023055,
+        "p90": 305.24781543949786,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 319.7617320571448,
+        "p10": 269.9566352346303,
+        "p90": 333.5278601247026,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.026882000034675002,
+        "p10": 0.02549391998909414,
+        "p90": 0.02968472000211477,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.021891299984417856,
+        "p10": 0.020996980066411198,
+        "p90": 0.026125380047596992,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0030150999955367297,
+        "p10": 0.0029311399848666046,
+        "p90": 0.0031918599910568447,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.2048541999538429,
+        "p10": 0.20485419995384294,
+        "p90": 0.2048541999538429,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "goldy",
       "execution": "native",
       "checkpoint": "stories42M.bin",
@@ -975,45 +3648,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 269.80184227736214,
-        "p10": 269.66090577254465,
-        "p90": 269.8687059788747,
+        "median": 271.075373686242,
+        "p10": 265.88973768273587,
+        "p90": 273.651540426747,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 272.1486475913144,
-        "p10": 266.04509874575103,
-        "p90": 272.2064335359028,
+        "median": 263.33287250080645,
+        "p10": 259.2771442449488,
+        "p90": 279.3890007135248,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 270.6938932330893,
-        "p10": 270.50231824943376,
-        "p90": 272.62654377227034,
+        "median": 269.3944447389437,
+        "p10": 265.624630126188,
+        "p90": 279.30023598577037,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.1180095,
-        "p10": 0.11715958000000001,
-        "p90": 0.11810478,
+        "median": 0.1186008,
+        "p10": 0.11493832000000001,
+        "p90": 0.12020784000000001,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.11452049999999998,
-        "p10": 0.1137101,
-        "p90": 0.11460162000000002,
+        "median": 0.11507290000000002,
+        "p10": 0.11102754000000004,
+        "p90": 0.11671186,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0034934,
-        "p10": 0.00348932,
-        "p90": 0.00349944,
+        "median": 0.0037423,
+        "p10": 0.0035471,
+        "p90": 0.00379834,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4168795,
-        "p10": 0.4168795,
-        "p90": 0.4168795,
+        "median": 0.4399314,
+        "p10": 0.4399314,
+        "p90": 0.4399314,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -1032,6 +3705,309 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1067.6156583629893,
+        "p10": 1060.980758791242,
+        "p90": 1070.0541809231333,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1087.6954452753228,
+        "p10": 1085.3356992245563,
+        "p90": 1090.3655466070593,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.02942,
+        "p10": 0.029348,
+        "p90": 0.029483999999999996,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.02942,
+        "p10": 0.029348,
+        "p90": 0.029483999999999996,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0009366666666666667,
+        "p10": 0.0009345333333333334,
+        "p90": 0.0009425333333333334,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.136096,
+        "p10": 0.13493119999999997,
+        "p90": 0.1362192,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1046.2303014451056,
+        "p10": 980.8649528953448,
+        "p90": 1054.3927394568157,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0009558125,
+        "p10": 0.0009484275,
+        "p90": 0.0010205874999999998,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=32"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 901.146218,
+        "p10": 890.9832620000001,
+        "p90": 903.7784091999999,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 888.627239,
+        "p10": 850.3087406,
+        "p90": 897.1863054,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 924.760309,
+        "p10": 915.8148066000001,
+        "p90": 926.8140146000001,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0346368,
+        "p10": 0.03452008,
+        "p90": 0.03493904,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0335222,
+        "p10": 0.03344796008,
+        "p90": 0.03385043992,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00109939999,
+        "p10": 0.00109603999,
+        "p90": 0.001106000018,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1036572,
+        "p10": 0.10365720000000002,
+        "p90": 0.1036572,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 926.5451140429575,
+        "p10": 822.1976834624414,
+        "p90": 932.4109579088492,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 966.6680756186221,
+        "p10": 870.3458789655872,
+        "p90": 986.8958385951594,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 943.4766212984317,
+        "p10": 832.1175027732273,
+        "p90": 943.5455428103706,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.03385449998313561,
+        "p10": 0.033847539976704866,
+        "p90": 0.0385561799746938,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.03285719995619729,
+        "p10": 0.03285479993792251,
+        "p90": 0.037406559858936816,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0009954499546438456,
+        "p10": 0.0009952499764040112,
+        "p90": 0.0010289699770510198,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.21975819999352098,
+        "p10": 0.21975819999352098,
+        "p90": 0.21975819999352098,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 368.85397068857395,
+        "p10": 365.45278462667915,
+        "p90": 377.1681019698958,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 377.01792872705977,
+        "p10": 374.4983561681006,
+        "p90": 391.2673496824605,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 371.05040773638564,
+        "p10": 364.7708408880865,
+        "p90": 375.7404689486717,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.08615290001034737,
+        "p10": 0.0854266599752009,
+        "p90": 0.08739057998172939,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.08354660001350567,
+        "p10": 0.08250700019998476,
+        "p90": 0.08499107988318429,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0025083000073209405,
+        "p10": 0.0024665400153025987,
+        "p90": 0.0025603800080716606,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.20797510002739727,
+        "p10": 0.2079751000273973,
+        "p90": 0.20797510002739727,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "goldy",
       "execution": "native",
       "checkpoint": "stories42M.bin",
@@ -1041,45 +4017,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 255.36481921609476,
-        "p10": 254.8647833238512,
-        "p90": 255.69589295920645,
+        "median": 269.20334578051245,
+        "p10": 264.9377608105202,
+        "p90": 273.68136979770446,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 239.40878001774615,
-        "p10": 233.86447123495242,
-        "p90": 240.51358841385505,
+        "median": 248.53944243282837,
+        "p10": 248.461023118523,
+        "p90": 257.68477705482354,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 258.0815074236027,
-        "p10": 257.8239221146564,
-        "p90": 258.3201802748681,
+        "median": 272.52359206694547,
+        "p10": 267.65902450800775,
+        "p90": 276.26513378636236,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.4964893,
-        "p10": 0.4955751400000001,
-        "p90": 0.49671889999999996,
+        "median": 0.4698176,
+        "p10": 0.46368152,
+        "p90": 0.478472,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.4920926000000001,
-        "p10": 0.49163803999999994,
-        "p90": 0.49258436000000005,
+        "median": 0.4660147000000001,
+        "p10": 0.45972462000000014,
+        "p90": 0.4745229400000001,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0040514999999999995,
-        "p10": 0.0038689,
-        "p90": 0.00406686,
+        "median": 0.0039609,
+        "p10": 0.00385166,
+        "p90": 0.0039718999999999996,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4188088,
-        "p10": 0.41880880000000004,
-        "p90": 0.4188088,
+        "median": 0.4312671,
+        "p10": 0.43126710000000007,
+        "p90": 0.4312671,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -1098,6 +4074,309 @@
       }
     },
     {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1001.3351134846462,
+        "p10": 980.5010929179955,
+        "p90": 1058.6361214093754,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1026.5458336674953,
+        "p10": 1003.5629865027538,
+        "p90": 1042.1839624183633,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.12469,
+        "p10": 0.122826,
+        "p90": 0.127562,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.12469,
+        "p10": 0.122826,
+        "p90": 0.127562,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0009986666666666666,
+        "p10": 0.0009453333333333334,
+        "p90": 0.00102,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.12814199999999998,
+        "p10": 0.1267284,
+        "p90": 0.1308404,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1002.9524412489266,
+        "p10": 987.1066517714116,
+        "p90": 1003.2442622902065,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00099705625,
+        "p10": 0.00099676625,
+        "p90": 0.00101312625,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=128"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 880.055828,
+        "p10": 851.7527560000001,
+        "p90": 882.8727008000001,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 875.704671,
+        "p10": 852.117383,
+        "p90": 892.0952262,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 883.48625,
+        "p10": 854.7370996000001,
+        "p90": 884.5331172,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.1449402,
+        "p10": 0.14478276,
+        "p90": 0.15026203999999999,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.1437487,
+        "p10": 0.14357862000000002,
+        "p90": 0.1486247,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0011025000150000001,
+        "p10": 0.001101900011,
+        "p90": 0.0011147400149999999,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1135212,
+        "p10": 0.1135212,
+        "p90": 0.1135212,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 909.1491135471316,
+        "p10": 904.2583015268116,
+        "p90": 952.9036921786225,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 904.3686677207384,
+        "p10": 893.5646394457333,
+        "p90": 975.8455389153158,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 918.2895785192815,
+        "p10": 915.1367776665925,
+        "p90": 959.876891455897,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.13941699999850243,
+        "p10": 0.1334774799877778,
+        "p90": 0.13986779998522253,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.1383006003452465,
+        "p10": 0.13237283972557634,
+        "p90": 0.13877748001832516,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0009946500067599118,
+        "p10": 0.0009751699981279672,
+        "p90": 0.0010096900048665702,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.21840159996645525,
+        "p10": 0.21840159996645528,
+        "p90": 0.21840159996645525,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 352.5279856670922,
+        "p10": 346.69335036541077,
+        "p90": 365.2004413821996,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 363.4513329849041,
+        "p10": 348.830855724705,
+        "p90": 371.6928131555666,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 352.0685549697189,
+        "p10": 347.5689201928845,
+        "p90": 365.38740008249636,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.3634279000107199,
+        "p10": 0.3503804599866271,
+        "p90": 0.36843710001558067,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.36072520026937127,
+        "p10": 0.34769503995776174,
+        "p90": 0.36541031994856893,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0026265500055160373,
+        "p10": 0.0026251500181388113,
+        "p90": 0.002869590016780421,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.2163241999805905,
+        "p10": 0.21632419998059052,
+        "p90": 0.2163241999805905,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
       "engine": "goldy",
       "execution": "native",
       "checkpoint": "stories42M.bin",
@@ -1107,45 +4386,45 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 248.60465415071062,
-        "p10": 246.15177010050473,
-        "p90": 249.3304761082756,
+        "median": 254.52615411301966,
+        "p10": 254.36570451149942,
+        "p90": 256.3902786016548,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 228.09796237238984,
-        "p10": 225.8162602439107,
-        "p90": 228.39970656925232,
+        "median": 236.00804197403025,
+        "p10": 227.56687624427434,
+        "p90": 240.5921833238332,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 250.43230455443154,
-        "p10": 248.07740770825504,
-        "p90": 251.30455222194186,
+        "median": 256.2146117929267,
+        "p10": 255.72497642208165,
+        "p90": 259.05531715647277,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.8946774,
-        "p10": 0.8915988400000001,
-        "p90": 0.90314772,
+        "median": 0.8746256,
+        "p10": 0.8656989600000001,
+        "p90": 0.8762450399999999,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.8904601999999999,
-        "p10": 0.8873721999999996,
-        "p90": 0.8989330800000002,
+        "median": 0.8703640999999999,
+        "p10": 0.8608460999999997,
+        "p90": 0.8720313799999998,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0041191000000000005,
-        "p10": 0.00411698,
-        "p90": 0.00412222,
+        "median": 0.00411085,
+        "p10": 0.00410609,
+        "p90": 0.00428257,
         "n": 3.0
       },
       "load_s": {
-        "median": 0.4328848,
-        "p10": 0.43288480000000007,
-        "p90": 0.4328848,
+        "median": 0.4352669,
+        "p10": 0.43526690000000007,
+        "p90": 0.4352669,
         "n": 3.0
       },
       "engine_native_notes": [
@@ -1162,6 +4441,309 @@
         "specialization_warms": 24,
         "topology_records": 0
       }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1056.3380281690143,
+        "p10": 1055.7433269568148,
+        "p90": 1062.331435421037,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 1087.2730802834676,
+        "p10": 1086.808907038113,
+        "p90": 1091.3451846707578,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.20602,
+        "p10": 0.205252,
+        "p90": 0.206108,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.20602,
+        "p10": 0.205252,
+        "p90": 0.206108,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0009466666666666666,
+        "p10": 0.0009413333333333334,
+        "p90": 0.0009472,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.131038,
+        "p10": 0.12889,
+        "p90": 0.1378228,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 1042.8684095604963,
+        "p10": 1000.8440937070251,
+        "p90": 1057.0143407792984,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00095889375,
+        "p10": 0.00094610375,
+        "p90": 0.0009995837499999999,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=224"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 886.045931,
+        "p10": 878.7585270000001,
+        "p90": 896.8715798000001,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 899.300801,
+        "p10": 884.546877,
+        "p90": 901.4137538000001,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 888.012469,
+        "p10": 879.3422490000002,
+        "p90": 897.6390458,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.2526049,
+        "p10": 0.24970441999999998,
+        "p90": 0.2548573,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.2511226,
+        "p10": 0.2484366792,
+        "p90": 0.25360476,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.001093800005,
+        "p10": 0.001093600025,
+        "p90": 0.001095519997,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.1216677,
+        "p10": 0.1216677,
+        "p90": 0.12166769999999999,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native Windows build (nvcc + MSVC) of pinned llama3.cuda with a Win32 POSIX shim (mmap/clock_gettime), not WSL",
+        "bench_tail.cu splice: CLOCK_MONOTONIC timing, cudaDeviceSynchronize around each measured forward",
+        "load_s includes tokenizer load and cuBLAS handle creation",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 931.0334979356214,
+        "p10": 926.2095679638143,
+        "p90": 960.933673273522,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 970.5910883438538,
+        "p10": 962.1857993679697,
+        "p90": 974.5489191372391,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 933.8952891635352,
+        "p10": 929.6545935428303,
+        "p90": 966.3105875573012,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.23998260003281757,
+        "p10": 0.23202611998422074,
+        "p90": 0.24109076004242525,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.2387848001671955,
+        "p10": 0.23084127998445184,
+        "p90": 0.23987528018187732,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0010089499701280147,
+        "p10": 0.0009927099861670285,
+        "p90": 0.001020550011890009,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.2131956000230275,
+        "p10": 0.21319560002302754,
+        "p90": 0.2131956000230275,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 362.37505482937036,
+        "p10": 350.859683900203,
+        "p90": 369.2407476054737,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 363.79180221912094,
+        "p10": 356.40481349759574,
+        "p90": 370.0870469595934,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 362.9728616900296,
+        "p10": 349.9446911055006,
+        "p90": 371.0892488952209,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.6171155000338331,
+        "p10": 0.6037810999667272,
+        "p90": 0.6405223000096157,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.6143709999741986,
+        "p10": 0.6010066800983622,
+        "p90": 0.6374584397068247,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0026626000180840492,
+        "p10": 0.0026298800017684697,
+        "p90": 0.002665199968032539,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.21057210001163185,
+        "p10": 0.21057210001163187,
+        "p90": 0.21057210001163185,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
     }
   ],
   "headline": [
@@ -1169,9 +4751,42 @@
       "engine": "goldy",
       "execution": "native",
       "legacy_compat_tok_s": {
-        "median": 508.10372514128994,
-        "p10": 498.8669186889746,
-        "p90": 516.3165267946029,
+        "median": 523.7075878683137,
+        "p10": 516.4887519511257,
+        "p90": 541.6035738287538,
+        "n": 3.0
+      },
+      "match_expected": true
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "match_expected": false
+    },
+    {
+      "engine": "llama3.cuda",
+      "execution": "native",
+      "legacy_compat_tok_s": {
+        "median": 1078.86261,
+        "p10": 1051.9147699999999,
+        "p90": 1091.14581,
+        "n": 3.0
+      },
+      "match_expected": true
+    },
+    {
+      "engine": "pytorch-compile",
+      "execution": "native",
+      "legacy_compat_tok_s": {
+        "median": 1318.492961737156,
+        "p10": 1270.5182217088582,
+        "p90": 1330.7505839044265,
         "n": 3.0
       },
       "match_expected": true
@@ -1180,13 +4795,13 @@
       "engine": "pytorch-eager",
       "execution": "native",
       "legacy_compat_tok_s": {
-        "median": 31.492229784546755,
-        "p10": 30.78918526892696,
-        "p90": 32.74456120506136,
+        "median": 431.4626132666722,
+        "p10": 429.34722827318876,
+        "p90": 431.6821113220873,
         "n": 3.0
       },
       "match_expected": true
     }
   ],
-  "n_rows": 54
+  "n_rows": 234
 }

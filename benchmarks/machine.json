@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-09-23T04:56:06.231879+00:00",
+  "captured_at": "2026-09-24T01:17:44.990645+00:00",
   "hostname": "WIN-FAQM3SSHSGG",
   "os": "Windows 11 10.0.26200",
   "machine": "AMD64",
@@ -8,7 +8,7 @@
   "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
   "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
   "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2025 NVIDIA Corporation\nBuilt on Tue_Dec_16_19:27:18_Pacific_Standard_Time_2025\nCuda compilation tools, release 13.1, V13.1.115\nBuild cuda_13.1.r13.1/compiler.37061995_0",
-  "torch": "2.14.0+cpu cuda=None",
+  "torch": "2.14.0+cu130 cuda=13.0 triton=3.8.0 (C:\\Dev\\kob3\\llama3.goldy\\tools\\bench\\.cache\\torch-venv\\Scripts\\python.exe)",
   "cwd": "C:\\Dev\\kob3\\llama3.goldy",
   "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
   "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2"

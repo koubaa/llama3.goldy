@@ -121,10 +121,10 @@ are not reloaded.
 | Engine | How | Notes |
 |--------|-----|--------|
 | Goldy | `src/bin` JSON harness (separate from `llama3-goldy`) | CUDA or Metal; records `ReplayStats`. |
-| PyTorch eager | [`tools/bench/pytorch/`](tools/bench/pytorch/) | Primary baseline. `torch.inference_mode()`, FP32, TF32 off. |
-| PyTorch compile | same, `--compile` | Secondary label `pytorch-compile`. Compilation is warmup-only. No CUDA Graphs. |
-| llama3.cuda | [`tools/bench/adapters/llama3_cuda/`](tools/bench/adapters/llama3_cuda/) | **WSL** copy of commit `424333d1651d2b0fc17d38e9f790e824947e284b`. Unpatched binary is verified first; JSON runs use an auditable splice, not edits under `refs/`. |
-| llama.cpp | [`tools/bench/adapters/llama_cpp/`](tools/bench/adapters/llama_cpp/) | **Native** Release CUDA build of pinned `refs/llama.cpp`. F32 GGUF via `llama-convert-llama2c-to-ggml`, `-ngl all`, `-ctk f32 -ctv f32`, `-fa off`. |
+| PyTorch eager | [`tools/bench/pytorch/`](tools/bench/pytorch/) | Primary baseline. `torch.inference_mode()`, FP32, TF32 off. Runs under the CUDA-torch venv `tools/bench/.cache/torch-venv` (override: `KOBA_BENCH_TORCH_PYTHON`); fails rather than falling back to CPU. |
+| PyTorch compile | same, `--compile` | Secondary label `pytorch-compile`. Inductor + Triton (`triton-windows` on Windows). Compilation is warmup-only. No CUDA Graphs. |
+| llama3.cuda | [`tools/bench/adapters/llama3_cuda/`](tools/bench/adapters/llama3_cuda/) | Copy of commit `424333d1651d2b0fc17d38e9f790e824947e284b`, built in WSL (`KOBA_BENCH_WSL_DISTRO`, default `Ubuntu`) when it has nvcc + g++, otherwise natively with nvcc + MSVC and the Win32 POSIX shim in `win_shim/` (`KOBA_BENCH_LLAMA3_CUDA_EXECUTION=auto\|wsl\|native`). Unpatched binary is verified first; JSON runs use an auditable splice, not edits under `refs/`. |
+| llama.cpp | [`tools/bench/adapters/llama_cpp/`](tools/bench/adapters/llama_cpp/) | **Native** Release CUDA build of pinned `refs/llama.cpp` (Ninja inside `vcvars64`, VS 2022 or newer). F32 GGUF via `llama-convert-llama2c-to-ggml`, `-ngl all`, `-ctk f32 -ctv f32`, `-fa off`. |
 | llama.cpp-bench | same adapter | `llama-bench` random-token pp/tg. **Never** mixed into the compatibility headline. |
 
 Pinned `refs/llama.cpp` commit: `f072b103714dfa1eee531f80b24512faf38e3dd2`.
@@ -138,8 +138,8 @@ python -m unittest discover -s tools/bench/tests -v
 cargo run --release --features cuda --bin llama3-goldy-bench -- --mode compatibility
 python tools/bench/adapters/goldy/run.py --mode compatibility
 
-python tools/bench/pytorch/bench.py --mode compatibility
-python tools/bench/pytorch/bench.py --mode scaling --checkpoint models/stories15M.bin --context 32
+tools/bench/.cache/torch-venv/Scripts/python.exe tools/bench/pytorch/bench.py --mode compatibility
+tools/bench/.cache/torch-venv/Scripts/python.exe tools/bench/pytorch/bench.py --mode scaling --checkpoint models/stories15M.bin --context 32
 
 python tools/bench/adapters/llama3_cuda/run.py --mode compatibility
 python tools/bench/adapters/llama_cpp/run.py --mode compatibility

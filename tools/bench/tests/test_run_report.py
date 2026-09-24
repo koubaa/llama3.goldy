@@ -158,7 +158,7 @@ class ReportTests(unittest.TestCase):
             self.assertIn("pytorch-eager", text)
             self.assertIn("Scaling decode tok/s", text)
             self.assertIn("llama3.cuda: WSL not on PATH", text)
-            self.assertIn("WSL adapter", text)
+            self.assertIn("Execution: goldy=native", text)
             data = json.loads((out / "baseline.json").read_text(encoding="utf-8"))
             self.assertEqual(data["n_rows"], 4)
             self.assertEqual(len(data["headline"]), 2)

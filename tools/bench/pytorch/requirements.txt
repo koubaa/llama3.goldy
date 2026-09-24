@@ -1,3 +1,7 @@
-# CPU is enough for layout/tokenizer/tiny-decoder tests.
-# Install a CUDA wheel separately for timed runs.
+# CPU torch is enough for layout/tokenizer/tiny-decoder tests.
+# Timed runs use an isolated venv (see env.py), built on Windows with:
+#   python -m venv tools/bench/.cache/torch-venv
+#   tools/bench/.cache/torch-venv/Scripts/python.exe -m pip install torch --index-url https://download.pytorch.org/whl/cu130
+#   tools/bench/.cache/torch-venv/Scripts/python.exe -m pip install numpy "triton-windows>=3.8,<3.9"
+# torch 2.14 pins triton 3.8 (Linux: plain `triton`); pytorch-compile needs it.
 torch>=2.2

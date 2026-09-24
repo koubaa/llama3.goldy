@@ -66,6 +66,42 @@ class TinyDecoderTests(unittest.TestCase):
             self.assertEqual(tok0, again)
             self.assertIsInstance(tok1, int)
 
+    def test_eager_and_compile_forwards_agree(self):
+        """The in-place/complex-RoPE eager path and the functional compile path are the same math."""
+        import torch
+
+        from bench.pytorch.model import Decoder
+
+        cfg = Config(8, 16, 2, 2, 1, 6, 8)  # kv_mul=2 exercises the grouped-query layout
+        layout = WeightLayout.from_config(cfg, True)
+        header = struct.pack("<7i", 8, 16, 2, 2, 1, 6, 8)
+        floats = [((i * 7919) % 23 - 11) / 32.0 for i in range(layout.n_floats)]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "gqa.bin"
+            path.write_bytes(header + struct.pack(f"<{layout.n_floats}f", *floats))
+            ckpt = Checkpoint.read_path(path)
+        a = Decoder(ckpt, device="cpu")
+        b = Decoder(ckpt, device="cpu")
+        with torch.inference_mode():
+            for pos, tok in enumerate([1, 3, 5, 2, 4]):
+                la = a._forward_eager(tok, pos)
+                lb = b._forward_compiled(tok, pos)
+                torch.testing.assert_close(la, lb, rtol=1e-5, atol=1e-6)
+        torch.testing.assert_close(torch.stack(a.k_cache), torch.stack(b.k_cache), rtol=1e-5, atol=1e-6)
+        torch.testing.assert_close(torch.stack(a.v_cache), torch.stack(b.v_cache), rtol=1e-5, atol=1e-6)
+
+    def test_tensor_argmax_first_on_ties(self):
+        import torch
+
+        self.assertEqual(sample_argmax(torch.tensor([1.0, 3.0, 3.0, 2.0])), 1)
+
+    @unittest.skipIf(_has_torch() and __import__("torch").cuda.is_available(), "CUDA present")
+    def test_cuda_request_fails_loudly_without_cuda(self):
+        from bench.pytorch.model import configure_precision
+
+        with self.assertRaises(RuntimeError):
+            configure_precision("cuda")
+
     def test_compile_is_optional(self):
         from bench.pytorch.model import Decoder
 
@@ -81,6 +117,28 @@ class TinyDecoderTests(unittest.TestCase):
                 with torch.inference_mode():
                     logits = dec.step(1, 0)
                 self.assertEqual(list(logits.shape), [4])
+
+
+class TorchEnvTests(unittest.TestCase):
+    def test_override_and_command(self):
+        import os
+        from unittest import mock
+
+        from bench.pytorch import env
+
+        with tempfile.TemporaryDirectory() as tmp:
+            fake = pathlib.Path(tmp) / "python.exe"
+            fake.write_bytes(b"")
+            with mock.patch.dict(os.environ, {env.ENV_OVERRIDE: str(fake)}):
+                self.assertEqual(env.torch_python(), fake)
+                cmd = env.bench_command("--mode", "scaling", compile=True)
+            self.assertEqual(cmd[:2], [str(fake), str(env.BENCH_PY)])
+            self.assertEqual(cmd[-1], "--compile")
+            with mock.patch.dict(os.environ, {env.ENV_OVERRIDE: str(fake) + ".missing"}):
+                self.assertIsNone(env.torch_python())
+        e = env.bench_env(base={"PATH": ""})
+        self.assertIn("TORCHINDUCTOR_CACHE_DIR", e)
+        self.assertIn("TRITON_CACHE_DIR", e)
 
 
 if __name__ == "__main__":

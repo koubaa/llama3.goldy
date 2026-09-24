@@ -88,6 +88,8 @@ def group_results(rows: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
 def _fmt(summary: dict[str, float], digits: int = 1) -> str:
     if not summary or summary.get("n", 0) == 0:
         return "—"
+    if summary["p10"] == 0 and summary["p90"] == 0:
+        return "—"
     med = summary["median"]
     p10 = summary["p10"]
     p90 = summary["p90"]
@@ -108,8 +110,8 @@ def render_markdown(groups: list[dict[str, Any]], metadata: dict[str, Any], skip
         f"- gpu: `{metadata.get('gpu', '')}`",
         f"- rustc: `{metadata.get('rustc', '')}`",
         f"- torch: `{metadata.get('torch', '')}`",
-        f"- llama3.cuda pin: `{metadata.get('llama3_cuda_commit', common.LLAMA3_CUDA_COMMIT)}` (WSL adapter)",
-        f"- llama.cpp pin: `{metadata.get('llama_cpp_commit', common.LLAMA_CPP_COMMIT)}` (native adapter)",
+        f"- llama3.cuda pin: `{metadata.get('llama3_cuda_commit', common.LLAMA3_CUDA_COMMIT)}`",
+        f"- llama.cpp pin: `{metadata.get('llama_cpp_commit', common.LLAMA_CPP_COMMIT)}`",
         "",
     ]
     if skipped:
@@ -125,7 +127,7 @@ def render_markdown(groups: list[dict[str, Any]], metadata: dict[str, Any], skip
             "## Compatibility (stories15M, \"I have a dream\", 50 positions)",
             "",
             "Headline metric is llama3.cuda-style `legacy_compat_tok_s = (pos - 1) / elapsed`.",
-            "llama.cpp is engine-native tokenizer / batched prefill and is **not** rewritten to match.",
+            "llama.cpp uses its engine-native tokenizer and is **not** rewritten to match; it has no legacy metric.",
             "",
             "| Engine | Exec | Match | Legacy tok/s | Decode tok/s | Prompt tok/s | TTFT s |",
             "|--------|------|-------|--------------|--------------|--------------|--------|",
@@ -140,7 +142,8 @@ def render_markdown(groups: list[dict[str, Any]], metadata: dict[str, Any], skip
     if not compat:
         lines.append("| *(no compatibility rows)* | | | | | | |")
     lines.append("")
-    lines.append("Execution notes: llama3.cuda is WSL; Goldy / PyTorch / llama.cpp are native.")
+    executions = sorted({f"{g['engine']}={g['execution']}" for g in groups})
+    lines.append(f"Execution: {', '.join(executions)}.")
     lines.append("")
 
     bench = [g for g in groups if g["engine"] == "llama.cpp-bench"]

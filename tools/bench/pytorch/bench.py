@@ -14,6 +14,7 @@ sys.path.insert(0, str(HERE.parents[1]))  # tools/bench
 from bench import common  # noqa: E402
 from bench.schema import base_result  # noqa: E402
 from bench.pytorch.checkpoint import Checkpoint  # noqa: E402
+from bench.pytorch.env import process_affinity_mask  # noqa: E402
 from bench.pytorch.model import Decoder, configure_precision  # noqa: E402
 from bench.pytorch.tokenizer import (  # noqa: E402
     BOS_ID,
@@ -69,13 +70,13 @@ def generate_loop(
     compat_start = 0.0
     run_start = 0.0
 
+    # decoder.step() ends with the full-logit DtoH and a stream sync, so every forward is
+    # bracketed by syncs without extra per-step device-wide synchronize() calls.
     _sync(decoder)
     run_start = _now()
     while pos < max_new_tokens - 1:
-        _sync(decoder)
         t0 = _now()
         logits = decoder.step(token, pos)
-        _sync(decoder)
         t1 = _now()
         if pos < n_prompt - 1:
             nxt = prompt_tokens[pos + 1]
@@ -200,8 +201,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--context", type=int, default=None, help="scaling context length")
     p.add_argument("--decode-steps", type=int, default=common.SCALING_DECODE_STEPS)
     p.add_argument("-n", "--total-positions", type=int, default=common.COMPAT_TOTAL_POSITIONS)
-    p.add_argument("--device", default="cuda")
+    p.add_argument(
+        "--device",
+        default="cuda",
+        help="cuda[:N] (fails if CUDA is unavailable) or cpu",
+    )
     p.add_argument("--compile", action="store_true")
+    p.add_argument(
+        "--require-compile",
+        action="store_true",
+        help="exit non-zero instead of falling back to eager when torch.compile fails",
+    )
     p.add_argument("--warmups", type=int, default=1)
     p.add_argument("--reps", type=int, default=1)
     p.add_argument("--no-dream-patch", action="store_true")
@@ -215,30 +225,36 @@ def main(argv: list[str] | None = None) -> int:
     if expected and sha != expected:
         raise SystemExit(f"checkpoint hash {sha} != pinned {expected}")
 
-    notes.extend(configure_precision(args.device))
+    try:
+        notes.extend(configure_precision(args.device))
+    except RuntimeError as exc:
+        raise SystemExit(f"pytorch bench: {exc}") from exc
+    import torch
+
     t0 = _now()
     ckpt = Checkpoint.read_path(ckpt_path)
-    tokenizer = Tokenizer.from_path(tok_path, ckpt.config.vocab_size)
-    decoder = Decoder(ckpt, device=args.device if not notes else "cpu")
-    if notes and "cpu" in notes[-1]:
-        args.device = "cpu"
+    decoder = Decoder(ckpt, device=args.device)
     _sync(decoder)
     load_s = _now() - t0
+    tokenizer = Tokenizer.from_path(tok_path, ckpt.config.vocab_size)
 
-    engine = "pytorch-compile" if args.compile else "pytorch-eager"
-    build = {
-        "engine": engine,
+    build: dict[str, Any] = {
         "device": str(decoder.device),
-        "compile": bool(args.compile),
+        "compile": False,
+        "compile_requested": bool(args.compile),
+        "torch": torch.__version__,
+        "torch_cuda": torch.version.cuda,
+        "python": sys.version.split()[0],
+        "tf32_matmul": torch.backends.cuda.matmul.allow_tf32,
+        "tf32_cudnn": torch.backends.cudnn.allow_tf32,
+        "float32_matmul_precision": torch.get_float32_matmul_precision(),
+        "logits_dtoh": "pinned non_blocking copy + stream sync" if decoder.device.type == "cuda" else "none (cpu)",
+        "cpu_affinity_mask": process_affinity_mask(),
     }
-    try:
-        import torch
-
-        build["torch"] = torch.__version__
-        if decoder.device.type == "cuda":
-            build["cuda"] = torch.version.cuda
-    except ImportError:
-        pass
+    if decoder.device.type == "cuda":
+        build["device_name"] = torch.cuda.get_device_name(decoder.device)
+        cap = torch.cuda.get_device_capability(decoder.device)
+        build["device_capability"] = f"sm_{cap[0]}{cap[1]}"
 
     prompt_tokens = encode_prompt(tokenizer, args.prompt, patch=not args.no_dream_patch)
     if args.mode == "compatibility":
@@ -264,27 +280,41 @@ def main(argv: list[str] | None = None) -> int:
         "sampling": "greedy",
     }
 
+    stop_on_bos = args.mode == "compatibility"
     warmup_s = 0.0
+    eager_tokens: list[int] | None = None
     if args.compile:
+        # Eager reference tokens for this exact workload; compiled runs must reproduce them.
+        t_w = _now()
+        eager_tokens = generate_loop(decoder, prompt_tokens, max_new, stop_on_bos=stop_on_bos)["generated"]
+        warmup_s += _now() - t_w
         compile_s, compile_err = decoder.compile_forward()
         warmup_s += compile_s
         if compile_err:
-            notes.append(f"torch.compile unavailable: {compile_err}")
-            engine = "pytorch-eager"
-            args.compile = False
+            if args.require_compile:
+                raise SystemExit(f"torch.compile failed: {compile_err}")
+            notes.append(f"torch.compile unavailable, ran eager instead: {compile_err}")
         else:
-            notes.append("torch.compile excluded from measured phases")
+            build.update(_compile_build_info())
+            notes.append(
+                "torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, "
+                "no CUDA graphs); compilation happens in warmup"
+            )
+    engine = "pytorch-compile" if decoder.compiled else "pytorch-eager"
+    build["engine"] = engine
+    build["compile"] = decoder.compiled
 
     for _ in range(max(0, args.warmups)):
         t_w = _now()
-        generate_loop(
-            decoder,
-            prompt_tokens,
-            max_new,
-            stop_on_bos=args.mode == "compatibility",
-        )
+        warm = generate_loop(decoder, prompt_tokens, max_new, stop_on_bos=stop_on_bos)
         _sync(decoder)
         warmup_s += _now() - t_w
+        if eager_tokens is not None and decoder.compiled and warm["generated"] != eager_tokens:
+            raise SystemExit(
+                f"torch.compile tokens diverge from eager\n  eager:    {eager_tokens}\n"
+                f"  compiled: {warm['generated']}"
+            )
+    graphs_after_warmup = _dynamo_graphs() if decoder.compiled else None
 
     require_match = args.mode == "compatibility"
     for _ in range(max(1, args.reps)):
@@ -304,8 +334,39 @@ def main(argv: list[str] | None = None) -> int:
             require_match=require_match,
             build=build,
         )
+        if decoder.compiled:
+            if eager_tokens is not None and result["tokens"]["generated"] != eager_tokens:
+                raise SystemExit("torch.compile tokens diverge from eager in a timed repetition")
+            graphs = _dynamo_graphs()
+            if graphs != graphs_after_warmup:
+                raise SystemExit(
+                    f"torch.compile recompiled during timing ({graphs_after_warmup} -> {graphs} graphs)"
+                )
+            result["build"] = {**build, "dynamo_graphs": graphs, "recompiles_during_timing": 0}
         print(common.dumps(result), flush=True)
     return 0
+
+
+def _dynamo_graphs() -> int:
+    from torch._dynamo.utils import counters
+
+    return int(counters["stats"]["unique_graphs"])
+
+
+def _compile_build_info() -> dict[str, Any]:
+    info: dict[str, Any] = {
+        "compile_backend": "inductor",
+        "compile_mode": "default",
+        "compile_dynamic": "automatic (token/pos SymInts, static weights)",
+        "cuda_graphs": False,
+    }
+    try:
+        import triton
+
+        info["triton"] = triton.__version__
+    except Exception as exc:  # noqa: BLE001
+        info["triton"] = f"unavailable: {exc}"
+    return info
 
 
 if __name__ == "__main__":

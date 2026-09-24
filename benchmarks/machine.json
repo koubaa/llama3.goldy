@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-09-24T01:17:44.990645+00:00",
+  "captured_at": "2026-09-24T02:12:56.279529+00:00",
   "hostname": "WIN-FAQM3SSHSGG",
   "os": "Windows 11 10.0.26200",
   "machine": "AMD64",
@@ -11,5 +11,8 @@
   "torch": "2.14.0+cu130 cuda=13.0 triton=3.8.0 (C:\\Dev\\kob3\\llama3.goldy\\tools\\bench\\.cache\\torch-venv\\Scripts\\python.exe)",
   "cwd": "C:\\Dev\\kob3\\llama3.goldy",
   "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
-  "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2"
+  "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2",
+  "goldy_refreshed_at": "2026-09-24T02:12:56.279529+00:00",
+  "other_engines_captured_at": "2026-09-24T01:17:44.990645+00:00",
+  "note": "Goldy rows refreshed after KV projections moved to semantic matmul plus cache stores. Other engines are unchanged from 2026-09-24T01:17:44Z."
 }

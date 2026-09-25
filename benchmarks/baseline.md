@@ -2,11 +2,11 @@
 
 Informational throughput. Protocol: [`BENCHMARKS.md`](../BENCHMARKS.md).
 
-Goldy rows were refreshed at `20260925T160224Z` after specialization stability became per node: scalars unchanged since recording (such as RoPE `theta`) and tensor shape facts bake at the first submit. Other engines are unchanged from `2026-09-24T01:17:44.990645+00:00`.
+Goldy rows were refreshed at `20260925T173558Z` with automatic kernel fusion on (the llama3.goldy default; `GOLDY_FUSION=0` opts out). Goldy warmup now keeps decoding until no specialization or fusion compile is outstanding, so `warmup_s` includes that background compile time. Other engines are unchanged from `2026-09-24T01:17:44.990645+00:00`.
 
 ## Machine
 
-- captured: `2026-09-25T16:02:24.161421+00:00`
+- captured: `2026-09-25T17:35:58.187906+00:00`
 - host: `WIN-FAQM3SSHSGG`
 - os: `Windows 11 10.0.26200`
 - gpu: `NVIDIA GeForce RTX 4060 Ti, 591.74, 8188 MiB`
@@ -22,7 +22,7 @@ llama.cpp uses its engine-native tokenizer and is **not** rewritten to match; it
 
 | Engine | Exec | Match | Legacy tok/s | Decode tok/s | Prompt tok/s | TTFT s |
 |--------|------|-------|--------------|--------------|--------------|--------|
-| goldy | native | yes | 2103.9 (2079.1–2110.7) | 2205.8 (2179.1–2212.8) | 2256.2 (2231.4–2256.6) | 0.0022 (0.0022–0.0022) |
+| goldy | native | yes | 2309.1 (2293.6–2323.0) | 2436.0 (2429.8–2448.7) | 2412.3 (2288.6–2477.6) | 0.0021 (0.0020–0.0022) |
 | llama.cpp | native | no | — | 2064.8 (2062.4–2098.0) | 1818.2 (1797.3–1828.8) | 0.0027 (0.0027–0.0028) |
 | llama3.cuda | native | yes | 1078.9 (1051.9–1091.1) | 1095.0 (1081.4–1108.0) | 1159.8 (987.8–1169.4) | 0.0044 (0.0043–0.0050) |
 | pytorch-compile | native | yes | 1318.5 (1270.5–1330.8) | 1459.7 (1389.3–1462.5) | 1449.6 (1368.9–1504.9) | 0.0034 (0.0033–0.0036) |
@@ -55,31 +55,31 @@ Do not mix into the compatibility headline.
 
 | Context | goldy | llama.cpp | llama3.cuda | pytorch-compile | pytorch-eager |
 |---------|--------|--------|--------|--------|--------|
-| 8 | 494.5 (489.9–495.4) | 464.0 (460.1–467.9) | 414.8 (407.2–432.5) | 468.2 (467.9–470.6) | 259.2 (246.6–260.3) |
-| 32 | 488.0 (485.6–490.8) | 468.6 (452.7–470.7) | 418.1 (403.4–424.1) | 466.0 (457.7–468.2) | 189.3 (182.7–192.2) |
-| 128 | 490.6 (489.5–491.3) | 469.5 (468.8–478.5) | 422.5 (416.4–422.9) | 457.7 (452.7–462.3) | 245.1 (239.1–252.3) |
-| 224 | 483.8 (483.1–484.0) | 464.5 (464.0–467.7) | 379.9 (375.3–387.2) | 406.5 (379.7–446.6) | 233.9 (212.1–247.5) |
+| 8 | 510.5 (508.9–512.6) | 464.0 (460.1–467.9) | 414.8 (407.2–432.5) | 468.2 (467.9–470.6) | 259.2 (246.6–260.3) |
+| 32 | 508.1 (507.9–514.9) | 468.6 (452.7–470.7) | 418.1 (403.4–424.1) | 466.0 (457.7–468.2) | 189.3 (182.7–192.2) |
+| 128 | 503.6 (503.2–508.1) | 469.5 (468.8–478.5) | 422.5 (416.4–422.9) | 457.7 (452.7–462.3) | 245.1 (239.1–252.3) |
+| 224 | 500.3 (497.7–504.4) | 464.5 (464.0–467.7) | 379.9 (375.3–387.2) | 406.5 (379.7–446.6) | 233.9 (212.1–247.5) |
 
 TTFT s / prompt tok/s / decode-step median s:
 
 | Context | Engine | TTFT s | Prompt tok/s | Step median s |
 |---------|--------|--------|--------------|---------------|
-| 8 | goldy | 0.0161 (0.0161–0.0163) | 494.2 (488.6–495.1) | 0.00199 (0.00198–0.00201) |
+| 8 | goldy | 0.0156 (0.0155–0.0156) | 513.8 (511.2–519.6) | 0.00192 (0.00191–0.00193) |
 | 8 | llama.cpp | 0.0177 (0.0176–0.0183) | 453.0 (438.4–455.1) | 0.00216 (0.00214–0.00217) |
 | 8 | llama3.cuda | 0.0184 (0.0183–0.0192) | 432.7 (414.6–435.7) | 0.00228 (0.00226–0.00230) |
 | 8 | pytorch-compile | 0.0171 (0.0168–0.0171) | 473.4 (466.9–477.8) | 0.00210 (0.00210–0.00210) |
 | 8 | pytorch-eager | 0.0313 (0.0306–0.0326) | 254.7 (250.3–262.8) | 0.00386 (0.00375–0.00390) |
-| 32 | goldy | 0.0652 (0.0650–0.0657) | 490.2 (487.1–492.6) | 0.00201 (0.00200–0.00202) |
+| 32 | goldy | 0.0627 (0.0626–0.0627) | 511.1 (510.3–511.8) | 0.00194 (0.00192–0.00194) |
 | 32 | llama.cpp | 0.0675 (0.0673–0.0705) | 473.9 (454.0–475.2) | 0.00213 (0.00212–0.00221) |
 | 32 | llama3.cuda | 0.0757 (0.0749–0.0786) | 422.2 (406.6–427.2) | 0.00232 (0.00229–0.00232) |
 | 32 | pytorch-compile | 0.0704 (0.0697–0.0704) | 453.8 (453.6–458.5) | 0.00209 (0.00207–0.00212) |
 | 32 | pytorch-eager | 0.1679 (0.1554–0.1732) | 191.1 (185.7–206.7) | 0.00537 (0.00510–0.00544) |
-| 128 | goldy | 0.2587 (0.2586–0.2595) | 495.2 (493.3–495.4) | 0.00201 (0.00200–0.00201) |
+| 128 | goldy | 0.2517 (0.2514–0.2521) | 508.5 (507.8–509.2) | 0.00196 (0.00194–0.00196) |
 | 128 | llama.cpp | 0.2696 (0.2689–0.2697) | 474.8 (474.6–476.0) | 0.00213 (0.00209–0.00213) |
 | 128 | llama3.cuda | 0.3043 (0.3040–0.3043) | 420.8 (420.7–421.1) | 0.00234 (0.00233–0.00234) |
 | 128 | pytorch-compile | 0.2755 (0.2753–0.2770) | 464.7 (462.2–465.1) | 0.00213 (0.00212–0.00213) |
 | 128 | pytorch-eager | 0.5267 (0.5127–0.5298) | 242.9 (241.6–249.6) | 0.00396 (0.00385–0.00401) |
-| 224 | goldy | 0.4557 (0.4552–0.4562) | 491.7 (491.2–492.2) | 0.00203 (0.00203–0.00204) |
+| 224 | goldy | 0.4426 (0.4423–0.4427) | 506.2 (506.1–506.5) | 0.00197 (0.00197–0.00198) |
 | 224 | llama.cpp | 0.4741 (0.4738–0.4946) | 472.4 (453.0–472.8) | 0.00215 (0.00214–0.00216) |
 | 224 | llama3.cuda | 0.5604 (0.5563–0.5680) | 399.8 (394.9–402.7) | 0.00244 (0.00242–0.00245) |
 | 224 | pytorch-compile | 0.5091 (0.4937–0.5153) | 440.2 (434.9–454.0) | 0.00233 (0.00216–0.00241) |
@@ -89,31 +89,31 @@ TTFT s / prompt tok/s / decode-step median s:
 
 | Context | goldy | llama.cpp | llama3.cuda | pytorch-compile | pytorch-eager |
 |---------|--------|--------|--------|--------|--------|
-| 8 | 2245.4 (2155.8–2246.4) | 2052.0 (2049.7–2091.1) | 1065.1 (1013.6–1098.9) | 1447.4 (1424.5–1457.9) | 446.3 (443.0–458.8) |
-| 32 | 2234.2 (2135.0–2243.5) | 2052.0 (2016.8–2117.4) | 1062.9 (1044.3–1097.8) | 1358.5 (1348.5–1440.4) | 438.8 (427.1–440.7) |
-| 128 | 2214.6 (2182.7–2220.4) | 2133.7 (2133.7–2145.9) | 1153.3 (1117.3–1159.0) | 1382.3 (1354.7–1457.6) | 418.5 (411.7–419.0) |
-| 224 | 2177.9 (2173.6–2239.8) | 1950.6 (1893.9–1990.1) | 1103.1 (1094.1–1121.1) | 1398.8 (1345.5–1449.1) | 418.9 (344.0–446.6) |
+| 8 | 2387.7 (2384.6–2435.9) | 2052.0 (2049.7–2091.1) | 1065.1 (1013.6–1098.9) | 1447.4 (1424.5–1457.9) | 446.3 (443.0–458.8) |
+| 32 | 2460.3 (2439.7–2468.2) | 2052.0 (2016.8–2117.4) | 1062.9 (1044.3–1097.8) | 1358.5 (1348.5–1440.4) | 438.8 (427.1–440.7) |
+| 128 | 2409.5 (2387.6–2421.9) | 2133.7 (2133.7–2145.9) | 1153.3 (1117.3–1159.0) | 1382.3 (1354.7–1457.6) | 418.5 (411.7–419.0) |
+| 224 | 2331.6 (2327.4–2396.6) | 1950.6 (1893.9–1990.1) | 1103.1 (1094.1–1121.1) | 1398.8 (1345.5–1449.1) | 418.9 (344.0–446.6) |
 
 TTFT s / prompt tok/s / decode-step median s:
 
 | Context | Engine | TTFT s | Prompt tok/s | Step median s |
 |---------|--------|--------|--------------|---------------|
-| 8 | goldy | 0.0035 (0.0035–0.0038) | 2262.0 (2071.6–2262.1) | 0.00044 (0.00044–0.00044) |
+| 8 | goldy | 0.0032 (0.0032–0.0033) | 2471.6 (2420.2–2482.6) | 0.00040 (0.00040–0.00041) |
 | 8 | llama.cpp | 0.0042 (0.0042–0.0043) | 1913.9 (1878.1–1921.2) | 0.00049 (0.00048–0.00049) |
 | 8 | llama3.cuda | 0.0072 (0.0068–0.0072) | 1110.3 (1107.0–1170.2) | 0.00089 (0.00089–0.00090) |
 | 8 | pytorch-compile | 0.0057 (0.0054–0.0057) | 1390.8 (1386.9–1458.2) | 0.00068 (0.00067–0.00068) |
 | 8 | pytorch-eager | 0.0175 (0.0174–0.0180) | 452.7 (441.7–457.4) | 0.00209 (0.00208–0.00217) |
-| 32 | goldy | 0.0145 (0.0145–0.0147) | 2200.8 (2181.1–2200.8) | 0.00045 (0.00045–0.00045) |
+| 32 | goldy | 0.0132 (0.0132–0.0133) | 2426.8 (2415.6–2433.5) | 0.00040 (0.00040–0.00041) |
 | 32 | llama.cpp | 0.0149 (0.0148–0.0156) | 2144.8 (2052.3–2156.3) | 0.00049 (0.00047–0.00050) |
 | 32 | llama3.cuda | 0.0299 (0.0293–0.0304) | 1079.5 (1052.4–1093.5) | 0.00090 (0.00089–0.00090) |
 | 32 | pytorch-compile | 0.0244 (0.0225–0.0244) | 1320.6 (1308.6–1426.4) | 0.00066 (0.00066–0.00067) |
 | 32 | pytorch-eager | 0.0714 (0.0700–0.0725) | 455.9 (444.6–458.6) | 0.00217 (0.00213–0.00221) |
-| 128 | goldy | 0.0584 (0.0578–0.0586) | 2193.3 (2184.9–2216.8) | 0.00045 (0.00044–0.00045) |
+| 128 | goldy | 0.0529 (0.0527–0.0529) | 2422.5 (2422.2–2431.5) | 0.00041 (0.00041–0.00041) |
 | 128 | llama.cpp | 0.0579 (0.0579–0.0579) | 2210.7 (2208.9–2211.6) | 0.00047 (0.00047–0.00047) |
 | 128 | llama3.cuda | 0.1127 (0.1116–0.1170) | 1136.3 (1094.2–1148.1) | 0.00085 (0.00084–0.00085) |
 | 128 | pytorch-compile | 0.0931 (0.0916–0.0940) | 1376.1 (1362.7–1399.5) | 0.00068 (0.00066–0.00070) |
 | 128 | pytorch-eager | 0.3055 (0.2997–0.3058) | 419.0 (418.5–427.0) | 0.00229 (0.00226–0.00229) |
-| 224 | goldy | 0.1003 (0.0997–0.1006) | 2234.8 (2229.2–2247.1) | 0.00045 (0.00044–0.00045) |
+| 224 | goldy | 0.0931 (0.0931–0.0934) | 2407.2 (2400.8–2408.2) | 0.00042 (0.00041–0.00042) |
 | 224 | llama.cpp | 0.1063 (0.1040–0.1138) | 2107.6 (1969.8–2153.4) | 0.00051 (0.00050–0.00053) |
 | 224 | llama3.cuda | 0.2001 (0.1993–0.2006) | 1120.0 (1116.9–1124.6) | 0.00087 (0.00087–0.00088) |
 | 224 | pytorch-compile | 0.1673 (0.1616–0.1703) | 1340.1 (1316.9–1387.6) | 0.00067 (0.00066–0.00067) |
@@ -123,31 +123,31 @@ TTFT s / prompt tok/s / decode-step median s:
 
 | Context | goldy | llama.cpp | llama3.cuda | pytorch-compile | pytorch-eager |
 |---------|--------|--------|--------|--------|--------|
-| 8 | 1105.6 (1098.6–1107.5) | 967.7 (964.3–1017.7) | 861.2 (851.2–883.1) | 968.6 (936.9–991.5) | 294.2 (273.8–305.2) |
-| 32 | 1120.9 (1111.2–1130.4) | 1067.6 (1061.0–1070.1) | 888.6 (850.3–897.2) | 966.7 (870.3–986.9) | 377.0 (374.5–391.3) |
-| 128 | 1109.7 (1103.6–1113.7) | 1001.3 (980.5–1058.6) | 875.7 (852.1–892.1) | 904.4 (893.6–975.8) | 363.5 (348.8–371.7) |
-| 224 | 1081.3 (1080.6–1090.4) | 1056.3 (1055.7–1062.3) | 899.3 (884.5–901.4) | 970.6 (962.2–974.5) | 363.8 (356.4–370.1) |
+| 8 | 1198.5 (1180.9–1198.7) | 967.7 (964.3–1017.7) | 861.2 (851.2–883.1) | 968.6 (936.9–991.5) | 294.2 (273.8–305.2) |
+| 32 | 1191.5 (1185.2–1199.2) | 1067.6 (1061.0–1070.1) | 888.6 (850.3–897.2) | 966.7 (870.3–986.9) | 377.0 (374.5–391.3) |
+| 128 | 1180.7 (1167.1–1182.3) | 1001.3 (980.5–1058.6) | 875.7 (852.1–892.1) | 904.4 (893.6–975.8) | 363.5 (348.8–371.7) |
+| 224 | 1158.9 (1142.6–1168.1) | 1056.3 (1055.7–1062.3) | 899.3 (884.5–901.4) | 970.6 (962.2–974.5) | 363.8 (356.4–370.1) |
 
 TTFT s / prompt tok/s / decode-step median s:
 
 | Context | Engine | TTFT s | Prompt tok/s | Step median s |
 |---------|--------|--------|--------------|---------------|
-| 8 | goldy | 0.0072 (0.0071–0.0074) | 1119.0 (1080.2–1134.2) | 0.00088 (0.00088–0.00088) |
+| 8 | goldy | 0.0068 (0.0067–0.0068) | 1182.4 (1174.1–1204.6) | 0.00083 (0.00083–0.00083) |
 | 8 | llama.cpp | 0.0083 (0.0080–0.0091) | 966.2 (884.4–998.3) | 0.00103 (0.00098–0.00104) |
 | 8 | llama3.cuda | 0.0096 (0.0088–0.0099) | 877.4 (869.6–920.6) | 0.00112 (0.00110–0.00112) |
 | 8 | pytorch-compile | 0.0081 (0.0080–0.0081) | 984.5 (981.2–997.3) | 0.00101 (0.00100–0.00101) |
 | 8 | pytorch-eager | 0.0269 (0.0255–0.0297) | 319.8 (270.0–333.5) | 0.00302 (0.00293–0.00319) |
-| 32 | goldy | 0.0289 (0.0288–0.0289) | 1107.2 (1104.7–1112.1) | 0.00088 (0.00087–0.00088) |
+| 32 | goldy | 0.0271 (0.0269–0.0271) | 1179.9 (1179.6–1190.9) | 0.00083 (0.00083–0.00083) |
 | 32 | llama.cpp | 0.0294 (0.0293–0.0295) | 1087.7 (1085.3–1090.4) | 0.00094 (0.00093–0.00094) |
 | 32 | llama3.cuda | 0.0346 (0.0345–0.0349) | 924.8 (915.8–926.8) | 0.00110 (0.00110–0.00111) |
 | 32 | pytorch-compile | 0.0339 (0.0338–0.0386) | 943.5 (832.1–943.5) | 0.00100 (0.00100–0.00103) |
 | 32 | pytorch-eager | 0.0862 (0.0854–0.0874) | 371.1 (364.8–375.7) | 0.00251 (0.00247–0.00256) |
-| 128 | goldy | 0.1134 (0.1132–0.1147) | 1128.7 (1116.5–1131.8) | 0.00088 (0.00088–0.00089) |
+| 128 | goldy | 0.1093 (0.1092–0.1094) | 1172.1 (1170.5–1172.4) | 0.00084 (0.00084–0.00084) |
 | 128 | llama.cpp | 0.1247 (0.1228–0.1276) | 1026.5 (1003.6–1042.2) | 0.00100 (0.00095–0.00102) |
 | 128 | llama3.cuda | 0.1449 (0.1448–0.1503) | 883.5 (854.7–884.5) | 0.00110 (0.00110–0.00111) |
 | 128 | pytorch-compile | 0.1394 (0.1335–0.1399) | 918.3 (915.1–959.9) | 0.00099 (0.00098–0.00101) |
 | 128 | pytorch-eager | 0.3634 (0.3504–0.3684) | 352.1 (347.6–365.4) | 0.00263 (0.00263–0.00287) |
-| 224 | goldy | 0.2024 (0.2012–0.2047) | 1107.0 (1094.4–1113.8) | 0.00091 (0.00090–0.00091) |
+| 224 | goldy | 0.1928 (0.1924–0.1931) | 1162.0 (1160.1–1164.8) | 0.00085 (0.00085–0.00086) |
 | 224 | llama.cpp | 0.2060 (0.2053–0.2061) | 1087.3 (1086.8–1091.3) | 0.00095 (0.00094–0.00095) |
 | 224 | llama3.cuda | 0.2526 (0.2497–0.2549) | 888.0 (879.3–897.6) | 0.00109 (0.00109–0.00110) |
 | 224 | pytorch-compile | 0.2400 (0.2320–0.2411) | 933.9 (929.7–966.3) | 0.00101 (0.00099–0.00102) |
@@ -157,24 +157,25 @@ TTFT s / prompt tok/s / decode-step median s:
 
 | Checkpoint | Tier | Context | records | topology | clean | resubmit_hits |
 |------------|------|---------|---------|----------|-------|---------------|
-| stories15M.bin | compatibility | 50 | 2 | 0 | 194 | 194 |
-| stories110M.bin | scaling | 8 | 3 | 0 | 89 | 89 |
-| stories110M.bin | scaling | 32 | 2 | 0 | 186 | 186 |
-| stories110M.bin | scaling | 128 | 2 | 0 | 570 | 570 |
-| stories110M.bin | scaling | 224 | 2 | 0 | 954 | 954 |
-| stories15M.bin | scaling | 8 | 2 | 0 | 90 | 90 |
-| stories15M.bin | scaling | 32 | 2 | 0 | 186 | 186 |
-| stories15M.bin | scaling | 128 | 3 | 0 | 569 | 569 |
-| stories15M.bin | scaling | 224 | 2 | 0 | 954 | 954 |
-| stories42M.bin | scaling | 8 | 3 | 0 | 89 | 89 |
-| stories42M.bin | scaling | 32 | 3 | 0 | 185 | 185 |
-| stories42M.bin | scaling | 128 | 2 | 0 | 570 | 570 |
-| stories42M.bin | scaling | 224 | 3 | 0 | 953 | 953 |
+| stories15M.bin | compatibility | 50 | 20 | 0 | 8996 | 8996 |
+| stories110M.bin | scaling | 8 | 27 | 0 | 4159 | 4159 |
+| stories110M.bin | scaling | 32 | 27 | 0 | 4109 | 4109 |
+| stories110M.bin | scaling | 128 | 27 | 0 | 4406 | 4406 |
+| stories110M.bin | scaling | 224 | 27 | 0 | 4753 | 4753 |
+| stories15M.bin | scaling | 8 | 20 | 0 | 9065 | 9065 |
+| stories15M.bin | scaling | 32 | 20 | 0 | 9192 | 9192 |
+| stories15M.bin | scaling | 128 | 20 | 0 | 9847 | 9847 |
+| stories15M.bin | scaling | 224 | 20 | 0 | 10018 | 10018 |
+| stories42M.bin | scaling | 8 | 23 | 0 | 6256 | 6256 |
+| stories42M.bin | scaling | 32 | 23 | 0 | 6369 | 6369 |
+| stories42M.bin | scaling | 128 | 23 | 0 | 7127 | 7127 |
+| stories42M.bin | scaling | 224 | 23 | 0 | 7386 | 7386 |
 
 ## Engine-native notes
 
 - `goldy`: tokenizer load is folded into load_s
 - `goldy`: each step includes worker.submit plus eager host-sink HostView claim
+- `goldy`: warmup_s includes 180 extra passes until background compiles settled
 - `llama.cpp`: native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified
 - `llama.cpp`: F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells
 - `llama.cpp`: full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)
@@ -193,6 +194,7 @@ TTFT s / prompt tok/s / decode-step median s:
 - `llama3.cuda`: load_s includes tokenizer load and cuBLAS handle creation
 - `pytorch-compile`: torch.compile(fullgraph=True, mode=default, automatic dynamic token/pos, no CUDA graphs); compilation happens in warmup
 - `goldy`: scaling pads/trims prompt tokens to context_len; filler is last non-BOS id
+- `goldy`: warmup_s includes 178 extra passes until background compiles settled
 - `llama.cpp`: scaling prompt pads the text prompt with its last word so it encodes to context_len ids
 - `llama.cpp`: --ignore-eos so exactly decode_steps tokens are sampled
 - `llama.cpp-bench`: native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified
@@ -206,7 +208,17 @@ TTFT s / prompt tok/s / decode-step median s:
 - `llama3.cuda`: scaling pads/trims prompt tokens to context_len; filler is last non-BOS id
 - `pytorch-compile`: scaling pads/trims prompt tokens to context_len; filler is last non-BOS id
 - `pytorch-eager`: scaling pads/trims prompt tokens to context_len; filler is last non-BOS id
+- `goldy`: warmup_s includes 84 extra passes until background compiles settled
 - `llama.cpp-bench`: llama-bench test n_prompt=0 n_gen=16 n_depth=32
+- `goldy`: warmup_s includes 27 extra passes until background compiles settled
 - `llama.cpp-bench`: llama-bench test n_prompt=0 n_gen=16 n_depth=128
+- `goldy`: warmup_s includes 16 extra passes until background compiles settled
 - `llama.cpp-bench`: llama-bench test n_prompt=0 n_gen=16 n_depth=224
+- `goldy`: warmup_s includes 391 extra passes until background compiles settled
+- `goldy`: warmup_s includes 192 extra passes until background compiles settled
+- `goldy`: warmup_s includes 65 extra passes until background compiles settled
+- `goldy`: warmup_s includes 38 extra passes until background compiles settled
+- `goldy`: warmup_s includes 269 extra passes until background compiles settled
+- `goldy`: warmup_s includes 132 extra passes until background compiles settled
+- `goldy`: warmup_s includes 46 extra passes until background compiles settled
 

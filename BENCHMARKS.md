@@ -120,7 +120,7 @@ are not reloaded.
 
 | Engine | How | Notes |
 |--------|-----|--------|
-| Goldy | `src/bin` JSON harness (separate from `llama3-goldy`) | CUDA or Metal; records `ReplayStats`. |
+| Goldy | `src/bin` JSON harness (separate from `llama3-goldy`) | CUDA or Metal; records `ReplayStats`. Automatic kernel fusion is on (`GOLDY_FUSION=0` opts out). Warmup keeps decoding until no specialization or fusion compile is outstanding (`Scheme::compiles_pending`), so `warmup_s` includes that compile time. |
 | PyTorch eager | [`tools/bench/pytorch/`](tools/bench/pytorch/) | Primary baseline. `torch.inference_mode()`, FP32, TF32 off. Runs under the CUDA-torch venv `tools/bench/.cache/torch-venv` (override: `KOBA_BENCH_TORCH_PYTHON`); fails rather than falling back to CPU. |
 | PyTorch compile | same, `--compile` | Secondary label `pytorch-compile`. Inductor + Triton (`triton-windows` on Windows). Compilation is warmup-only. No CUDA Graphs. |
 | llama3.cuda | [`tools/bench/adapters/llama3_cuda/`](tools/bench/adapters/llama3_cuda/) | Copy of commit `424333d1651d2b0fc17d38e9f790e824947e284b`, built in WSL (`KOBA_BENCH_WSL_DISTRO`, default `Ubuntu`) when it has nvcc + g++, otherwise natively with nvcc + MSVC and the Win32 POSIX shim in `win_shim/` (`KOBA_BENCH_LLAMA3_CUDA_EXECUTION=auto\|wsl\|native`). Unpatched binary is verified first; JSON runs use an auditable splice, not edits under `refs/`. |

@@ -145,6 +145,22 @@ fn run() -> anyhow::Result<()> {
         let _ = generate_loop(&mut model, &prompt_tokens, max_new, stop_on_bos)?;
         warmup_s += t0.elapsed().as_secs_f64();
     }
+    // Submits never wait for specialization or fusion compiles; timed passes should
+    // measure the steady state, so keep decoding until none are outstanding. Decoding
+    // rather than blocking also keeps the GPU clocked up for the timed passes.
+    const MAX_SETTLE: std::time::Duration = std::time::Duration::from_secs(120);
+    let mut settle_passes = 0;
+    if warmups > 0 {
+        let t0 = Instant::now();
+        while model.compiles_pending() && t0.elapsed() < MAX_SETTLE {
+            let _ = generate_loop(&mut model, &prompt_tokens, max_new, stop_on_bos)?;
+            settle_passes += 1;
+        }
+        warmup_s += t0.elapsed().as_secs_f64();
+    }
+    notes.push(format!(
+        "warmup_s includes {settle_passes} extra passes until background compiles settled"
+    ));
 
     let features = {
         let mut f = Vec::new();

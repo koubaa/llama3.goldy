@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "captured_at": "2026-09-25T16:02:24.161421+00:00",
+    "captured_at": "2026-09-25T17:35:58.187906+00:00",
     "hostname": "WIN-FAQM3SSHSGG",
     "os": "Windows 11 10.0.26200",
     "machine": "AMD64",
@@ -13,9 +13,9 @@
     "cwd": "C:\\Dev\\kob3\\llama3.goldy",
     "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
     "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2",
-    "goldy_refreshed_at": "2026-09-25T16:02:24.161421+00:00",
+    "goldy_refreshed_at": "2026-09-25T17:35:58.187906+00:00",
     "other_engines_captured_at": "2026-09-24T01:17:44.990645+00:00",
-    "note": "Goldy rows were refreshed at `20260925T160224Z` after specialization stability became per node: scalars unchanged since recording (such as RoPE `theta`) and tensor shape facts bake at the first submit. Other engines are unchanged from `2026-09-24T01:17:44.990645+00:00`."
+    "note": "Goldy rows were refreshed at `20260925T173558Z` with automatic kernel fusion on (the llama3.goldy default; `GOLDY_FUSION=0` opts out). Goldy warmup now keeps decoding until no specialization or fusion compile is outstanding, so `warmup_s` includes that background compile time. Other engines are unchanged from `2026-09-24T01:17:44.990645+00:00`."
   },
   "skipped": [],
   "groups": [
@@ -29,58 +29,59 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 2103.888248469202,
-        "p10": 2079.1309566835407,
-        "p90": 2110.7102284253347,
+        "median": 2309.057760117762,
+        "p10": 2293.5667455742478,
+        "p90": 2322.9619756291436,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 2205.8174759565895,
-        "p10": 2179.0513821127465,
-        "p90": 2212.825757308749,
+        "median": 2436.0008444802934,
+        "p10": 2429.765001997364,
+        "p90": 2448.7109681027364,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 2256.190422471657,
-        "p10": 2231.3893973559243,
-        "p90": 2256.5977459893948,
+        "median": 2412.254251598118,
+        "p10": 2288.625710623287,
+        "p90": 2477.587704238197,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0022167,
-        "p10": 0.00221638,
-        "p90": 0.0022359,
+        "median": 0.0020614,
+        "p10": 0.00201628,
+        "p90": 0.0021774800000000003,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0017729,
-        "p10": 0.00177258,
-        "p90": 0.0017926600000000002,
+        "median": 0.0016582,
+        "p10": 0.00161476,
+        "p90": 0.0017490000000000003,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.000446,
-        "p10": 0.00044544,
-        "p90": 0.00044664000000000005,
+        "median": 0.0004034,
+        "p10": 0.00040276,
+        "p90": 0.0004038,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.2641417,
-        "p10": 1.2641417,
-        "p90": 1.2641417,
+        "median": 1.2660814,
+        "p10": 1.2660814,
+        "p90": 1.2660814,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
-        "each step includes worker.submit plus eager host-sink HostView claim"
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "warmup_s includes 180 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 194,
-        "records": 2,
-        "resubmit_hits": 194,
+        "clean_submits": 8996,
+        "records": 20,
+        "resubmit_hits": 8996,
         "specialization_demotions": 0,
-        "specialization_promotions": 56,
-        "specialization_warms": 9,
+        "specialization_promotions": 92,
+        "specialization_warms": 19,
         "topology_records": 0
       }
     },
@@ -330,59 +331,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 489.7944644320165,
-        "p10": 484.85966383015545,
-        "p90": 490.60306133967526,
+        "median": 506.385055195971,
+        "p10": 504.79865447279656,
+        "p90": 510.10680543961973,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 494.5445553735357,
-        "p10": 489.94203280209604,
-        "p90": 495.4355852382063,
+        "median": 510.5052406553612,
+        "p10": 508.9358731920976,
+        "p90": 512.6245618274837,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 494.1932295527551,
-        "p10": 488.5963697254439,
-        "p90": 495.1108566141465,
+        "median": 513.821806597472,
+        "p10": 511.19554795795995,
+        "p90": 519.5923007008026,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0161442,
-        "p10": 0.01611668,
-        "p90": 0.016323479999999998,
+        "median": 0.0156097,
+        "p10": 0.01554922,
+        "p90": 0.01564074,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0141645,
-        "p10": 0.01413826,
-        "p90": 0.014327220000000002,
+        "median": 0.0136234,
+        "p10": 0.01347252,
+        "p90": 0.013693480000000001,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00198855,
-        "p10": 0.0019834300000000004,
-        "p90": 0.00200831,
+        "median": 0.00191935,
+        "p10": 0.0019144700000000001,
+        "p90": 0.0019325100000000001,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.4192324,
-        "p10": 1.4192324,
-        "p90": 1.4192324,
+        "median": 1.2710956,
+        "p10": 1.2710956000000002,
+        "p90": 1.2710956,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 178 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 89,
-        "records": 3,
-        "resubmit_hits": 89,
+        "clean_submits": 4159,
+        "records": 27,
+        "resubmit_hits": 4159,
         "specialization_demotions": 0,
-        "specialization_promotions": 110,
-        "specialization_warms": 9,
+        "specialization_promotions": 182,
+        "specialization_warms": 25,
         "topology_records": 0
       }
     },
@@ -699,59 +701,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 486.07038510511273,
-        "p10": 486.0206732094501,
-        "p90": 488.47783770369267,
+        "median": 508.18565568654225,
+        "p10": 507.99665772846004,
+        "p90": 511.0309390559637,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 488.0072225068931,
-        "p10": 485.62485928931477,
-        "p90": 490.8184511369156,
+        "median": 508.06231384279295,
+        "p10": 507.91136544410045,
+        "p90": 514.8542802577272,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 490.2108064600296,
-        "p10": 487.08556943775915,
-        "p90": 492.6098551074755,
+        "median": 511.0771858441511,
+        "p10": 510.3336993091143,
+        "p90": 511.83015158644224,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.065244,
-        "p10": 0.06496479999999999,
-        "p90": 0.06565359999999999,
+        "median": 0.0626964,
+        "p10": 0.06262000000000001,
+        "p90": 0.06270184,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0632381,
-        "p10": 0.06293050000000001,
-        "p90": 0.06364449999999999,
+        "median": 0.06065620000000001,
+        "p10": 0.06056700000000001,
+        "p90": 0.060744599999999996,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00200935,
-        "p10": 0.00200143,
-        "p90": 0.00201519,
+        "median": 0.0019449,
+        "p10": 0.0019245,
+        "p90": 0.00194498,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.4290483,
-        "p10": 1.4290483,
-        "p90": 1.4290483,
+        "median": 1.3034813,
+        "p10": 1.3034813,
+        "p90": 1.3034813,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 84 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 186,
-        "records": 2,
-        "resubmit_hits": 186,
+        "clean_submits": 4109,
+        "records": 27,
+        "resubmit_hits": 4109,
         "specialization_demotions": 0,
-        "specialization_promotions": 110,
-        "specialization_warms": 9,
+        "specialization_promotions": 182,
+        "specialization_warms": 25,
         "topology_records": 0
       }
     },
@@ -1068,59 +1071,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 493.99809706366835,
-        "p10": 492.2808545835828,
-        "p90": 494.06231252952614,
+        "median": 507.4507710214162,
+        "p10": 507.07624574320755,
+        "p90": 507.9178657050068,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 490.5703186560826,
-        "p10": 489.52503913959885,
-        "p90": 491.2622283742963,
+        "median": 503.6324490386916,
+        "p10": 503.2396815486708,
+        "p90": 508.09605993736454,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 495.16801791650465,
-        "p10": 493.31405340451647,
-        "p90": 495.397047014123,
+        "median": 508.5170601467573,
+        "p10": 507.79916509115765,
+        "p90": 509.2486140470211,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.2586655,
-        "p10": 0.25855733999999997,
-        "p90": 0.25951222,
+        "median": 0.2517347,
+        "p10": 0.25138518000000004,
+        "p90": 0.25208814,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.25647859999999995,
-        "p10": 0.25636003999999996,
-        "p90": 0.25744340000000004,
+        "median": 0.24974579999999996,
+        "p10": 0.24938716,
+        "p90": 0.25009899999999996,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0020128,
-        "p10": 0.00200236,
-        "p90": 0.00201328,
+        "median": 0.00195645,
+        "p10": 0.0019439700000000002,
+        "p90": 0.00196221,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.4257705,
-        "p10": 1.4257705,
-        "p90": 1.4257705,
+        "median": 1.2467397,
+        "p10": 1.2467397,
+        "p90": 1.2467397,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 27 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 570,
-        "records": 2,
-        "resubmit_hits": 570,
+        "clean_submits": 4406,
+        "records": 27,
+        "resubmit_hits": 4406,
         "specialization_demotions": 0,
-        "specialization_promotions": 110,
-        "specialization_warms": 9,
+        "specialization_promotions": 182,
+        "specialization_warms": 25,
         "topology_records": 0
       }
     },
@@ -1437,59 +1441,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 490.5217997780698,
-        "p10": 490.25637653145134,
-        "p90": 491.21712344336663,
+        "median": 505.40400042131154,
+        "p10": 505.30906166920226,
+        "p90": 505.5225218164625,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 483.7519803596696,
-        "p10": 483.0861822350763,
-        "p90": 483.98613793090755,
+        "median": 500.33929258278266,
+        "p10": 497.72417162119615,
+        "p90": 504.40309033015797,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 491.68067478873166,
-        "p10": 491.2429338971623,
-        "p90": 492.16537819189676,
+        "median": 506.1576460900344,
+        "p10": 506.0844080873419,
+        "p90": 506.5260754391919,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.4556539,
-        "p10": 0.45522702000000004,
-        "p90": 0.4562311,
+        "median": 0.4426379,
+        "p10": 0.44231326000000004,
+        "p90": 0.44269822,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.45354639999999996,
-        "p10": 0.45309984000000003,
-        "p90": 0.45395063999999996,
+        "median": 0.4405741999999999,
+        "p10": 0.4402538,
+        "p90": 0.44063795999999983,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00203475,
-        "p10": 0.0020317100000000004,
-        "p90": 0.0020375500000000004,
+        "median": 0.0019706000000000003,
+        "p10": 0.0019681600000000005,
+        "p90": 0.00198468,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.4262736999999999,
-        "p10": 1.4262737,
-        "p90": 1.4262736999999999,
+        "median": 1.4199687,
+        "p10": 1.4199687000000003,
+        "p90": 1.4199687,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 16 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 954,
-        "records": 2,
-        "resubmit_hits": 954,
+        "clean_submits": 4753,
+        "records": 27,
+        "resubmit_hits": 4753,
         "specialization_demotions": 0,
-        "specialization_promotions": 110,
-        "specialization_warms": 9,
+        "specialization_promotions": 182,
+        "specialization_warms": 25,
         "topology_records": 0
       }
     },
@@ -1806,59 +1811,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 2089.6259569537056,
-        "p10": 2086.772738374489,
-        "p90": 2150.021125886022,
+        "median": 2311.1428601443413,
+        "p10": 2300.310283115843,
+        "p90": 2347.626380253916,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 2245.3934350309437,
-        "p10": 2155.7681095318226,
-        "p90": 2246.3771227948937,
+        "median": 2387.7033278615136,
+        "p10": 2384.6296729920705,
+        "p90": 2435.8650742501277,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 2262.0047825243973,
-        "p10": 2071.553214644011,
-        "p90": 2262.1217424407637,
+        "median": 2471.576866040534,
+        "p10": 2420.23620410538,
+        "p90": 2482.598703582685,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0035388,
-        "p10": 0.0035387200000000004,
-        "p90": 0.00383712,
+        "median": 0.003237,
+        "p10": 0.00322348,
+        "p90": 0.00329644,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0030946,
-        "p10": 0.0030944400000000004,
-        "p90": 0.0033858,
+        "median": 0.0028322,
+        "p10": 0.00281964,
+        "p90": 0.0028926000000000004,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0004442,
-        "p10": 0.00044340000000000004,
-        "p90": 0.000445,
+        "median": 0.00040445,
+        "p10": 0.00040345,
+        "p90": 0.00040548999999999994,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.2318233,
-        "p10": 1.2318233,
-        "p90": 1.2318233,
+        "median": 1.2274438,
+        "p10": 1.2274438,
+        "p90": 1.2274438,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 391 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 90,
-        "records": 2,
-        "resubmit_hits": 90,
+        "clean_submits": 9065,
+        "records": 20,
+        "resubmit_hits": 9065,
         "specialization_demotions": 0,
-        "specialization_promotions": 56,
-        "specialization_warms": 9,
+        "specialization_promotions": 92,
+        "specialization_warms": 19,
         "topology_records": 0
       }
     },
@@ -2175,59 +2181,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 2160.577907621204,
-        "p10": 2140.707757286375,
-        "p90": 2168.1202234496964,
+        "median": 2381.0633000502094,
+        "p10": 2380.44232666636,
+        "p90": 2390.0683511303755,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 2234.2312150028624,
-        "p10": 2135.032893137078,
-        "p90": 2243.488767283319,
+        "median": 2460.251560722084,
+        "p10": 2439.707037646547,
+        "p90": 2468.1518343601206,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 2200.7979667466525,
-        "p10": 2181.0968915269627,
-        "p90": 2200.822965871623,
+        "median": 2426.7854486813158,
+        "p10": 2415.5585155947365,
+        "p90": 2433.495753218875,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0145404,
-        "p10": 0.014537760000000002,
-        "p90": 0.014667200000000002,
+        "median": 0.0132055,
+        "p10": 0.013167900000000001,
+        "p90": 0.0132515,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0140858,
-        "p10": 0.014085639999999998,
-        "p90": 0.014213319999999998,
+        "median": 0.012774100000000002,
+        "p10": 0.012738900000000001,
+        "p90": 0.012833539999999997,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0004461,
-        "p10": 0.00044514,
-        "p90": 0.00044926000000000005,
+        "median": 0.0004043,
+        "p10": 0.00040406000000000003,
+        "p90": 0.00040598,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.235714,
-        "p10": 1.235714,
-        "p90": 1.235714,
+        "median": 1.245313,
+        "p10": 1.245313,
+        "p90": 1.245313,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 192 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 186,
-        "records": 2,
-        "resubmit_hits": 186,
+        "clean_submits": 9192,
+        "records": 20,
+        "resubmit_hits": 9192,
         "specialization_demotions": 0,
-        "specialization_promotions": 56,
-        "specialization_warms": 9,
+        "specialization_promotions": 92,
+        "specialization_warms": 19,
         "topology_records": 0
       }
     },
@@ -2544,59 +2551,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 2176.692224916688,
-        "p10": 2173.6917836623115,
-        "p90": 2201.3401146011133,
+        "median": 2405.0838730657706,
+        "p10": 2403.797494674223,
+        "p90": 2409.486832399352,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 2214.594175617318,
-        "p10": 2182.6875002587717,
-        "p90": 2220.42504945183,
+        "median": 2409.529689923648,
+        "p10": 2387.603676457491,
+        "p90": 2421.9465575852028,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 2193.285437966288,
-        "p10": 2184.9406489804537,
-        "p90": 2216.83001491044,
+        "median": 2422.4667578429758,
+        "p10": 2422.20803071089,
+        "p90": 2431.539820055571,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0584006,
-        "p10": 0.05777268000000001,
-        "p90": 0.05860692,
+        "median": 0.0528725,
+        "p10": 0.052687380000000006,
+        "p90": 0.05287946,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.057904000000000025,
-        "p10": 0.057290640000000004,
-        "p90": 0.05812535999999999,
+        "median": 0.05242589999999998,
+        "p10": 0.05223046000000001,
+        "p90": 0.05243149999999999,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00044935,
-        "p10": 0.00044267000000000004,
-        "p90": 0.00045287,
+        "median": 0.0004101,
+        "p10": 0.00041002,
+        "p90": 0.00041165999999999994,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.249707,
-        "p10": 1.249707,
-        "p90": 1.249707,
+        "median": 1.2304926,
+        "p10": 1.2304926,
+        "p90": 1.2304926,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 65 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 569,
-        "records": 3,
-        "resubmit_hits": 569,
+        "clean_submits": 9847,
+        "records": 20,
+        "resubmit_hits": 9847,
         "specialization_demotions": 0,
-        "specialization_promotions": 56,
-        "specialization_warms": 9,
+        "specialization_promotions": 92,
+        "specialization_warms": 19,
         "topology_records": 0
       }
     },
@@ -2913,59 +2921,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 2226.773489419551,
-        "p10": 2217.5016483298787,
-        "p90": 2233.971056584157,
+        "median": 2392.440691596301,
+        "p10": 2384.7241531646737,
+        "p90": 2395.444848724892,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 2177.8782021615443,
-        "p10": 2173.6197976166773,
-        "p90": 2239.8156043475096,
+        "median": 2331.613768179301,
+        "p10": 2327.355917828419,
+        "p90": 2396.6208942158546,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 2234.762278415303,
-        "p10": 2229.159555340804,
-        "p90": 2247.132473684861,
+        "median": 2407.1727270568376,
+        "p10": 2400.8451228268773,
+        "p90": 2408.241791243459,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.1002794,
-        "p10": 0.09972908,
-        "p90": 0.10058684,
+        "median": 0.0931274,
+        "p10": 0.0930866,
+        "p90": 0.09339124,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0997869,
-        "p10": 0.09923834000000001,
-        "p90": 0.10003786000000002,
+        "median": 0.0926398,
+        "p10": 0.09259867999999999,
+        "p90": 0.09288411999999999,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0004455,
-        "p10": 0.00044378,
-        "p90": 0.00044786,
+        "median": 0.00041545000000000004,
+        "p10": 0.00041449000000000005,
+        "p90": 0.00041721,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.2729298,
-        "p10": 1.2729298,
-        "p90": 1.2729298,
+        "median": 1.237975,
+        "p10": 1.237975,
+        "p90": 1.237975,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 38 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 954,
-        "records": 2,
-        "resubmit_hits": 954,
+        "clean_submits": 10018,
+        "records": 20,
+        "resubmit_hits": 10018,
         "specialization_demotions": 0,
-        "specialization_promotions": 56,
-        "specialization_warms": 9,
+        "specialization_promotions": 92,
+        "specialization_warms": 19,
         "topology_records": 0
       }
     },
@@ -3282,59 +3291,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 1086.5646283702024,
-        "p10": 1079.196140498432,
-        "p90": 1086.9339981737564,
+        "median": 1167.02826860747,
+        "p10": 1162.567612986189,
+        "p90": 1169.0184801227867,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 1105.583195135434,
-        "p10": 1098.6223291030458,
-        "p90": 1107.4757113969201,
+        "median": 1198.4839178439274,
+        "p10": 1180.8940158606742,
+        "p90": 1198.677866168523,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 1118.9794907044777,
-        "p10": 1080.2483497360383,
-        "p90": 1134.2169678856526,
+        "median": 1182.352543747044,
+        "p10": 1174.148416388135,
+        "p90": 1204.6251368743008,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.0071543,
-        "p10": 0.0070571,
-        "p90": 0.00736902,
+        "median": 0.006803,
+        "p10": 0.0066502,
+        "p90": 0.006811080000000001,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.0062556999999999995,
-        "p10": 0.006171939999999999,
-        "p90": 0.00648202,
+        "median": 0.005920400000000001,
+        "p10": 0.00581144,
+        "p90": 0.0059618399999999995,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00088255,
-        "p10": 0.00088195,
-        "p90": 0.00088455,
+        "median": 0.0008287,
+        "p10": 0.00082846,
+        "p90": 0.0008288600000000001,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.284293,
-        "p10": 1.284293,
-        "p90": 1.284293,
+        "median": 1.2773054,
+        "p10": 1.2773054,
+        "p90": 1.2773054,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 269 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 89,
-        "records": 3,
-        "resubmit_hits": 89,
+        "clean_submits": 6256,
+        "records": 23,
+        "resubmit_hits": 6256,
         "specialization_demotions": 0,
-        "specialization_promotions": 74,
-        "specialization_warms": 9,
+        "specialization_promotions": 122,
+        "specialization_warms": 21,
         "topology_records": 0
       }
     },
@@ -3651,59 +3661,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 1102.5464028225188,
-        "p10": 1100.2291089235157,
-        "p90": 1104.4043756672925,
+        "median": 1174.4610883169207,
+        "p10": 1172.330921144899,
+        "p90": 1177.6576458402858,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 1120.8798907142107,
-        "p10": 1111.1984239686394,
-        "p90": 1130.3963312855858,
+        "median": 1191.5045723987967,
+        "p10": 1185.2215728855297,
+        "p90": 1199.1536713014384,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 1107.1863537496113,
-        "p10": 1104.650171356419,
-        "p90": 1112.1490859703197,
+        "median": 1179.8556770087994,
+        "p10": 1179.604275188834,
+        "p90": 1190.915475238726,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.028891,
-        "p10": 0.028769560000000003,
-        "p90": 0.028943240000000002,
+        "median": 0.0271124,
+        "p10": 0.02686712,
+        "p90": 0.027135680000000002,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.027998900000000007,
-        "p10": 0.027874100000000002,
-        "p90": 0.02806322,
+        "median": 0.026274400000000003,
+        "p10": 0.026030960000000002,
+        "p90": 0.026279999999999998,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0008823,
-        "p10": 0.0008717400000000001,
-        "p90": 0.00088462,
+        "median": 0.00083015,
+        "p10": 0.00082891,
+        "p90": 0.00083031,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.3019521,
-        "p10": 1.3019521,
-        "p90": 1.3019521,
+        "median": 1.2830148000000001,
+        "p10": 1.2830148000000001,
+        "p90": 1.2830148000000001,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 132 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 185,
-        "records": 3,
-        "resubmit_hits": 185,
+        "clean_submits": 6369,
+        "records": 23,
+        "resubmit_hits": 6369,
         "specialization_demotions": 0,
-        "specialization_promotions": 74,
-        "specialization_warms": 9,
+        "specialization_promotions": 122,
+        "specialization_warms": 21,
         "topology_records": 0
       }
     },
@@ -4020,59 +4031,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 1121.5871564053289,
-        "p10": 1111.9672221832807,
-        "p90": 1125.3326597074615,
+        "median": 1169.2709019525178,
+        "p10": 1165.8313338238058,
+        "p90": 1169.960013087955,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 1109.677777315412,
-        "p10": 1103.642208904149,
-        "p90": 1113.6668378144661,
+        "median": 1180.7333830225296,
+        "p10": 1167.1302461991645,
+        "p90": 1182.290401749754,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 1128.665162372259,
-        "p10": 1116.4758822028016,
-        "p90": 1131.8387222117349,
+        "median": 1172.0538074214082,
+        "p10": 1170.4556768993568,
+        "p90": 1172.37668636392,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.1134352,
-        "p10": 0.11317856000000001,
-        "p90": 0.11466863999999999,
+        "median": 0.1092814,
+        "p10": 0.10924756000000002,
+        "p90": 0.10938595999999999,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.11252229999999996,
-        "p10": 0.11220701999999996,
-        "p90": 0.11375413999999999,
+        "median": 0.10835679999999996,
+        "p10": 0.10832696,
+        "p90": 0.10850479999999998,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.00087825,
-        "p10": 0.0008778500000000001,
-        "p90": 0.0008882100000000001,
+        "median": 0.0008383500000000001,
+        "p10": 0.00083679,
+        "p90": 0.0008424299999999999,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.2728808,
-        "p10": 1.2728808,
-        "p90": 1.2728807999999998,
+        "median": 1.2777513,
+        "p10": 1.2777513000000003,
+        "p90": 1.2777513,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 46 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 570,
-        "records": 2,
-        "resubmit_hits": 570,
+        "clean_submits": 7127,
+        "records": 23,
+        "resubmit_hits": 7127,
         "specialization_demotions": 0,
-        "specialization_promotions": 74,
-        "specialization_warms": 9,
+        "specialization_promotions": 122,
+        "specialization_warms": 21,
         "topology_records": 0
       }
     },
@@ -4389,59 +4401,60 @@
       "n": 3,
       "match_expected": true,
       "legacy_compat_tok_s": {
-        "median": 1103.5997290152598,
-        "p10": 1091.2616202424122,
-        "p90": 1109.203168682615,
+        "median": 1157.794217158413,
+        "p10": 1157.7653806791468,
+        "p90": 1161.9996006462636,
         "n": 3.0
       },
       "decode_tok_s": {
-        "median": 1081.2564199599935,
-        "p10": 1080.6022104681483,
-        "p90": 1090.3890972816253,
+        "median": 1158.8576560655333,
+        "p10": 1142.5572261852853,
+        "p90": 1168.1216676422475,
         "n": 3.0
       },
       "prompt_tok_s": {
-        "median": 1107.023343299852,
-        "p10": 1094.411104146312,
-        "p90": 1113.76339686871,
+        "median": 1162.039353009839,
+        "p10": 1160.1312509472323,
+        "p90": 1164.8409669593116,
         "n": 3.0
       },
       "ttft_s": {
-        "median": 0.2024011,
-        "p10": 0.20117910000000003,
-        "p90": 0.2047319,
+        "median": 0.1928125,
+        "p10": 0.19235066,
+        "p90": 0.1931281,
         "n": 3.0
       },
       "prompt_s": {
-        "median": 0.20144110000000015,
-        "p10": 0.20022390000000007,
-        "p90": 0.20376926000000004,
+        "median": 0.19190399999999985,
+        "p10": 0.19144271999999993,
+        "p90": 0.19221976000000005,
         "n": 3.0
       },
       "decode_step_median_s": {
-        "median": 0.0009058,
-        "p10": 0.00089884,
-        "p90": 0.0009069600000000001,
+        "median": 0.0008503,
+        "p10": 0.00084978,
+        "p90": 0.00086182,
         "n": 3.0
       },
       "load_s": {
-        "median": 1.2859332,
-        "p10": 1.2859332,
-        "p90": 1.2859332,
+        "median": 1.2941691,
+        "p10": 1.2941691,
+        "p90": 1.2941691,
         "n": 3.0
       },
       "engine_native_notes": [
         "tokenizer load is folded into load_s",
         "each step includes worker.submit plus eager host-sink HostView claim",
-        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 27 extra passes until background compiles settled"
       ],
       "replay_stats": {
-        "clean_submits": 953,
-        "records": 3,
-        "resubmit_hits": 953,
+        "clean_submits": 7386,
+        "records": 23,
+        "resubmit_hits": 7386,
         "specialization_demotions": 0,
-        "specialization_promotions": 74,
-        "specialization_warms": 9,
+        "specialization_promotions": 122,
+        "specialization_warms": 21,
         "topology_records": 0
       }
     },
@@ -4754,9 +4767,9 @@
       "engine": "goldy",
       "execution": "native",
       "legacy_compat_tok_s": {
-        "median": 2103.888248469202,
-        "p10": 2079.1309566835407,
-        "p90": 2110.7102284253347,
+        "median": 2309.057760117762,
+        "p10": 2293.5667455742478,
+        "p90": 2322.9619756291436,
         "n": 3.0
       },
       "match_expected": true

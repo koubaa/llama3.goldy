@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-09-25T16:02:24.161421+00:00",
+  "captured_at": "2026-09-25T17:35:58.187906+00:00",
   "hostname": "WIN-FAQM3SSHSGG",
   "os": "Windows 11 10.0.26200",
   "machine": "AMD64",
@@ -12,7 +12,7 @@
   "cwd": "C:\\Dev\\kob3\\llama3.goldy",
   "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
   "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2",
-  "goldy_refreshed_at": "2026-09-25T16:02:24.161421+00:00",
+  "goldy_refreshed_at": "2026-09-25T17:35:58.187906+00:00",
   "other_engines_captured_at": "2026-09-24T01:17:44.990645+00:00",
-  "note": "Goldy rows were refreshed at `20260925T160224Z` after specialization stability became per node: scalars unchanged since recording (such as RoPE `theta`) and tensor shape facts bake at the first submit. Other engines are unchanged from `2026-09-24T01:17:44.990645+00:00`."
+  "note": "Goldy rows were refreshed at `20260925T173558Z` with automatic kernel fusion on (the llama3.goldy default; `GOLDY_FUSION=0` opts out). Goldy warmup now keeps decoding until no specialization or fusion compile is outstanding, so `warmup_s` includes that background compile time. Other engines are unchanged from `2026-09-24T01:17:44.990645+00:00`."
 }

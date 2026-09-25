@@ -83,6 +83,10 @@ impl Model {
         let tensors = ModelTensors::allocate(runtime, checkpoint, &shape)?;
 
         let mut worker = Scheme::new(&ctx);
+        // Fused decode is faster once its kernels compile; `GOLDY_FUSION=0` opts out.
+        if std::env::var_os("GOLDY_FUSION").is_none() {
+            worker.set_automatic_fusion(true);
+        }
         let exchange = MemoryExchange::new(&ctx);
         let deposit =
             exchange.bind_deposit(&mut worker, DecodeStep::deposit_target(&tensors.step))?;
@@ -150,7 +154,13 @@ impl Model {
         self.worker.replay_stats()
     }
 
-    /// What automatic fusion (`GOLDY_FUSION=1`) runs as one dispatch.
+    /// Whether the worker's specialization or fusion compiles are outstanding; see
+    /// [`Scheme::compiles_pending`].
+    pub fn compiles_pending(&self) -> bool {
+        self.worker.compiles_pending()
+    }
+
+    /// What automatic fusion (on unless `GOLDY_FUSION=0`) runs as one dispatch.
     pub fn fusion_report(&self) -> FusionReport {
         self.worker.fusion_report()
     }

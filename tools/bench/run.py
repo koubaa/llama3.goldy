@@ -154,7 +154,7 @@ def invoke_engine(
             cmd.append("--skip-build")
     elif engine.startswith("pytorch"):
         compile = engine == "pytorch-compile"
-        cmd = torch_env.bench_command("--device", "cuda", compile=compile)
+        cmd = torch_env.bench_command("--device", torch_env.bench_device(), compile=compile)
         if compile:
             cmd.append("--require-compile")
         env = torch_env.bench_env(compile=compile)

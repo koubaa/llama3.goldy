@@ -98,6 +98,18 @@ def _has_cl(env: dict[str, str]) -> bool:
     return any((pathlib.Path(p) / "cl.exe").exists() for p in path.split(os.pathsep) if p)
 
 
+def bench_device() -> str:
+    override = os.environ.get("KOBA_BENCH_TORCH_DEVICE")
+    if override:
+        return override
+    info = probe()
+    if info.get("cuda_available"):
+        return "cuda"
+    if info.get("mps_available"):
+        return "mps"
+    return "cuda"
+
+
 def process_affinity_mask() -> str | None:
     """Hex CPU affinity mask of this process (Windows only, read-only), e.g. '0xfffffff'."""
     if os.name != "nt":
@@ -128,9 +140,12 @@ def bench_command(*args: str, compile: bool = False, python: pathlib.Path | None
 _PROBE = (
     "import json, torch\n"
     "info = {'torch': torch.__version__, 'cuda': torch.version.cuda,"
-    " 'cuda_available': torch.cuda.is_available()}\n"
+    " 'cuda_available': torch.cuda.is_available(),"
+    " 'mps_available': bool(getattr(getattr(torch.backends, 'mps', None), 'is_available', lambda: False)())}\n"
     "if info['cuda_available']:\n"
     "    info['device_name'] = torch.cuda.get_device_name(0)\n"
+    "if info['mps_available']:\n"
+    "    info['device_name'] = info.get('device_name') or 'mps'\n"
     "try:\n"
     "    import triton\n"
     "    info['triton'] = triton.__version__\n"
@@ -144,9 +159,9 @@ _PROBE = (
 @functools.lru_cache(maxsize=2)
 def probe(python: str | None = None) -> dict[str, Any]:
     """Import torch in the bench interpreter; {'error': ...} if that fails."""
-    py = python or (str(torch_python()) if torch_python() else None)
-    if py is None:
-        return {"error": f"no torch venv at {VENV} (set {ENV_OVERRIDE})"}
+    import sys
+
+    py = python or (str(torch_python()) if torch_python() else sys.executable)
     proc = subprocess.run([py, "-c", _PROBE], capture_output=True, text=True, env=bench_env())
     if proc.returncode != 0:
         tail = (proc.stderr or proc.stdout).strip().splitlines()[-1:] or ["unknown error"]
@@ -160,15 +175,19 @@ def probe(python: str | None = None) -> dict[str, Any]:
 
 
 def torch_ready(*, compile: bool = False) -> tuple[bool, str]:
-    """(ready, reason) for run.py's engine_ready: needs a CUDA torch, plus Triton for compile."""
+    """(ready, reason) for run.py's engine_ready: GPU torch (CUDA or MPS), plus Triton for CUDA compile."""
     info = probe()
     if "error" in info:
         return False, info["error"]
-    if not info.get("cuda_available"):
-        return False, f"torch {info['torch']} in {info['python']} has no CUDA"
-    if compile and not info.get("triton"):
-        return False, f"triton unavailable: {info.get('triton_error', 'not installed')}"
-    return True, ""
+    if info.get("cuda_available"):
+        if compile and not info.get("triton"):
+            return False, f"triton unavailable: {info.get('triton_error', 'not installed')}"
+        return True, ""
+    if info.get("mps_available"):
+        if compile:
+            return False, "pytorch-compile is CUDA/Triton-only; MPS uses pytorch-eager"
+        return True, ""
+    return False, f"torch {info['torch']} in {info['python']} has neither CUDA nor MPS"
 
 
 if __name__ == "__main__":

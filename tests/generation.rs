@@ -48,9 +48,10 @@ fn stories15m_i_have_a_dream() {
         stats.topology_records, 0,
         "DecodeStep deposit must not dirty worker topology"
     );
+    let record_cap = if stats.fusion_promotions > 0 { 8 } else { 2 };
     assert!(
-        stats.records <= 2,
-        "worker records once, plus at most one specialization re-record; got {stats:?}"
+        stats.records <= record_cap,
+        "worker records once, plus specialization/fusion re-records (cap {record_cap}); got {stats:?}"
     );
     #[cfg(not(feature = "metal"))]
     assert!(

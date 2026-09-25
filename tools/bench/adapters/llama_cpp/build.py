@@ -1,8 +1,10 @@
-"""Native Release CUDA build of pinned llama.cpp. Does not edit refs/.
+"""Native Release GPU build of pinned llama.cpp. Does not edit refs/.
 
-Windows: Ninja inside a captured ``vcvars64.bat`` environment (VS 2022 or
+Windows: Ninja + CUDA inside a captured ``vcvars64.bat`` environment (VS 2022 or
 newer, located with vswhere). The VS-bundled CMake/Ninja are preferred over
 PATH because older CMake releases do not know newer MSVC toolsets.
+
+macOS: Ninja + Metal (no CUDA).
 
 Environment overrides:
   LLAMA_CPP_CUDA_ARCH   CMAKE_CUDA_ARCHITECTURES (default 89, RTX 40xx/Ada)
@@ -157,8 +159,6 @@ def cmake_configure_cmd() -> list[str]:
         "Ninja",
         f"-DCMAKE_MAKE_PROGRAM={ninja_exe()}",
         "-DCMAKE_BUILD_TYPE=Release",
-        "-DGGML_CUDA=ON",
-        f"-DCMAKE_CUDA_ARCHITECTURES={cuda_arch()}",
         "-DLLAMA_BUILD_EXAMPLES=ON",
         "-DLLAMA_BUILD_TOOLS=ON",
         "-DLLAMA_BUILD_TESTS=OFF",
@@ -166,6 +166,17 @@ def cmake_configure_cmd() -> list[str]:
         "-DLLAMA_BUILD_APP=OFF",
         "-DLLAMA_OPENSSL=OFF",
     ]
+    if sys.platform == "darwin":
+        cmd += [
+            "-DGGML_METAL=ON",
+            "-DGGML_CUDA=OFF",
+            "-DGGML_METAL_EMBED_LIBRARY=ON",
+        ]
+    else:
+        cmd += [
+            "-DGGML_CUDA=ON",
+            f"-DCMAKE_CUDA_ARCHITECTURES={cuda_arch()}",
+        ]
     if os.name == "nt":
         cmd += [
             "-DCMAKE_C_COMPILER=cl",

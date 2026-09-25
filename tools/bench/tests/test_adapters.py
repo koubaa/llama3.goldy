@@ -156,15 +156,21 @@ class LlamaCppAdapterTests(unittest.TestCase):
         self.assertIn("-G Ninja", joined)
         self.assertNotIn("Visual Studio", joined)
         self.assertIn("-DCMAKE_BUILD_TYPE=Release", cmd)
-        self.assertIn("-DGGML_CUDA=ON", cmd)
-        self.assertIn("-DCMAKE_CUDA_ARCHITECTURES=89", cmd)
         self.assertIn("-DLLAMA_BUILD_SERVER=OFF", cmd)
+        if sys.platform == "darwin":
+            self.assertIn("-DGGML_METAL=ON", cmd)
+            self.assertIn("-DGGML_CUDA=OFF", cmd)
+        else:
+            self.assertIn("-DGGML_CUDA=ON", cmd)
+            self.assertIn("-DCMAKE_CUDA_ARCHITECTURES=89", cmd)
         if os.name == "nt":
             self.assertIn("-DCMAKE_CXX_COMPILER=cl", cmd)
             self.assertIn("-allow-unsupported-compiler", joined)
             self.assertIn("-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH", joined)
 
     def test_cuda_arch_env_override(self):
+        if sys.platform == "darwin":
+            self.skipTest("CUDA architectures are not used for Metal builds")
         env = {"LLAMA_CPP_CMAKE": "cmake", "LLAMA_CPP_NINJA": "ninja", "LLAMA_CPP_CUDA_ARCH": "86;89"}
         with mock.patch.dict(os.environ, env):
             self.assertIn("-DCMAKE_CUDA_ARCHITECTURES=86;89", cmake_configure_cmd())
@@ -233,6 +239,20 @@ class LlamaCppAdapterTests(unittest.TestCase):
         cpu_log = LLAMA_CPP_COMPLETION_LOG.replace("offloaded 7/7", "offloaded 0/7").replace("CUDA0 KV", "CPU KV")
         with self.assertRaises(SystemExit):
             require_gpu_offload(parse_gpu_offload(cpu_log), kv_type="f32")
+
+    def test_metal_mapped_buffers_count_as_gpu_offload(self):
+        log = """
+0.00.139.082 I llama_prepare_model_devices: using device MTL0 (Apple M1) (unknown id) - 10922 MiB free
+0.00.155.419 I load_tensors: offloaded 7/7 layers to GPU
+0.00.155.420 I load_tensors:  MTL0_Mapped model buffer size =    57.95 MiB
+0.00.155.981 I llama_kv_cache:       MTL0 KV buffer size =     3.38 MiB
+0.00.129.073 I llama_context: flash_attn            = disabled
+0.00.129.560 I llama_kv_cache: size =    3.38 MiB (   256 cells,   6 layers,  1/1 seqs), K (f32):    1.69 MiB, V (f32):    1.69 MiB
+"""
+        info = parse_gpu_offload(log)
+        self.assertEqual(info["device"], "MTL0")
+        self.assertEqual(info["device_name"], "Apple M1")
+        require_gpu_offload(info, kv_type="f32")
 
     def test_scaling_prompt_pads_with_last_token(self):
         vocab = {"I": 306, "have": 505, "a": 263, "dream": 12561}

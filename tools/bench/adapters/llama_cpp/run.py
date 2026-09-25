@@ -29,7 +29,9 @@ N_PROMPT_TOKENS_RE = re.compile(r"number of tokens in prompt = (\d+)")
 PROMPT_TOKEN_RE = re.compile(r"^(?:[0-9.]+ \w )?\s*(\d+) -> '", re.M)
 OFFLOAD_RE = re.compile(r"offloaded (\d+)/(\d+) layers to GPU")
 DEVICE_RE = re.compile(r"using device (\S+) \(([^)]*)\)")
-GPU_BUFFER_RE = re.compile(r"(CUDA\d+) (model|KV) buffer size =\s*([0-9.]+) MiB")
+GPU_BUFFER_RE = re.compile(
+    r"(CUDA\d+|Metal\d+|MTL\d+)(?:_Mapped)? (model|KV) buffer size =\s*([0-9.]+) MiB"
+)
 KV_TYPES_RE = re.compile(r"K \((\w+)\):.*V \((\w+)\):")
 FLASH_ATTN_RE = re.compile(r"flash_attn\s+= (\w+)")
 # common/log.cpp timestamps: minutes.seconds.milliseconds.microseconds
@@ -38,7 +40,11 @@ LOAD_START_RE = re.compile(LOG_TS + r".*load the model", re.M)
 LOAD_END_RE = re.compile(LOG_TS + r"sched_reserve: reserve took", re.M)
 
 NATIVE_NOTES = [
-    "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified",
+    (
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified"
+        if sys.platform == "darwin"
+        else "native llama.cpp Release CUDA build (Ninja + MSVC on Windows); refs/ is unmodified"
+    ),
     "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
     "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
 ]
@@ -131,9 +137,9 @@ def require_gpu_offload(info: dict, *, kv_type: str | None) -> None:
     if not total or info.get("offloaded_layers") != total:
         problems.append(f"offloaded {info.get('offloaded_layers')}/{total} layers")
     if "gpu_model_buffer_mib" not in info:
-        problems.append("no CUDA model buffer")
+        problems.append("no GPU model buffer")
     if "gpu_kv_buffer_mib" not in info:
-        problems.append("no CUDA KV buffer")
+        problems.append("no GPU KV buffer")
     if kv_type and info.get("kv_types") != [kv_type, kv_type]:
         problems.append(f"K/V types {info.get('kv_types')} != {kv_type}")
     if info.get("flash_attn") not in (None, "disabled"):

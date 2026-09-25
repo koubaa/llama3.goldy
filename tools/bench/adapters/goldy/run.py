@@ -42,6 +42,8 @@ def exe_path() -> pathlib.Path:
 def features() -> list[str]:
     if os.environ.get("KOBA_BENCH_GOLDY_FEATURES"):
         return os.environ["KOBA_BENCH_GOLDY_FEATURES"].split(",")
+    if sys.platform == "darwin":
+        return ["metal"]
     return ["cuda"]
 
 

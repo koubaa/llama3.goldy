@@ -1,0 +1,3279 @@
+{
+  "metadata": {
+    "captured_at": "2026-09-25T19:31:57.558661+00:00",
+    "hostname": "MacBookAir.lan",
+    "os": "Darwin 24.6.0 Darwin Kernel Version 24.6.0: Mon Jan 19 21:58:37 PST 2026; root:xnu-11417.140.69.708.3~1/RELEASE_ARM64_T8103",
+    "machine": "arm64",
+    "python": "3.9.6",
+    "gpu": "",
+    "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+    "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)",
+    "nvcc": "",
+    "torch": "2.8.0 cuda=None triton=None (/Users/mohamedkoubaa/dev/KOB3/llama3.goldy/tools/bench/.cache/torch-venv/bin/python)",
+    "cwd": "/Users/mohamedkoubaa/dev/KOB3/llama3.goldy",
+    "llama3_cuda_commit": "424333d1651d2b0fc17d38e9f790e824947e284b",
+    "llama_cpp_commit": "f072b103714dfa1eee531f80b24512faf38e3dd2"
+  },
+  "skipped": [],
+  "groups": [
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "compatibility",
+      "context_len": 50,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 56.300062499403126,
+        "p10": 56.23093075564993,
+        "p90": 56.323433544058176,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 56.583927999924164,
+        "p10": 56.47468046160534,
+        "p90": 56.59868671693136,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 56.155752922436626,
+        "p10": 55.658471998803336,
+        "p90": 56.67950951028866,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0893195,
+        "p10": 0.08843780000000001,
+        "p90": 0.0894394,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.07123045800000001,
+        "p10": 0.07057375800000001,
+        "p90": 0.07186829160000001,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.017612,
+        "p10": 0.0175991328,
+        "p90": 0.0176577336,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.565732334,
+        "p10": 0.565732334,
+        "p90": 0.565732334,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 192,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 92,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "compatibility",
+      "context_len": 50,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": false,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 527.1354977836348,
+        "p10": 517.4603431479712,
+        "p90": 532.9747735516255,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 296.55990510083035,
+        "p10": 271.7389592464008,
+        "p90": 300.8578747399729,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.01686,
+        "p10": 0.01662,
+        "p90": 0.018436,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.01686,
+        "p10": 0.01662,
+        "p90": 0.018436,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0018970454545454546,
+        "p10": 0.0018763181818181821,
+        "p90": 0.0019326818181818184,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.030093999999999996,
+        "p10": 0.0299988,
+        "p90": 0.0308116,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "EOS stops generation (llama3.cuda stops on BOS)",
+        "generated text does not match llama3.cuda DREAM_STORY (engine-native tokenizer)"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "compatibility",
+      "context_len": 50,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 79.61260730852727,
+        "p10": 78.96701212130054,
+        "p90": 79.82787943719558,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 80.18552549981467,
+        "p10": 79.20053516953985,
+        "p90": 80.34536942307064,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 80.52353665734334,
+        "p10": 78.00988681982943,
+        "p90": 82.95975341141312,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.06295345799999996,
+        "p10": 0.06083052439999986,
+        "p90": 0.06319432520000011,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.04967491700000015,
+        "p10": 0.04822678260000034,
+        "p90": 0.05128855060000022,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.012147791000000296,
+        "p10": 0.012117391800000023,
+        "p90": 0.012308358199999958,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.11924999999999997,
+        "p10": 0.11924999999999998,
+        "p90": 0.11924999999999997,
+        "n": 3.0
+      },
+      "engine_native_notes": [],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 12.75107328420987,
+        "p10": 12.739541956886264,
+        "p90": 12.762017206763534,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 12.767888769957866,
+        "p10": 12.743890125112236,
+        "p90": 12.780455303784347,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 12.77808790704195,
+        "p10": 12.758496992122724,
+        "p90": 12.781755211554389,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.625972042,
+        "p10": 0.6255948748,
+        "p90": 0.6280146419999999,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.547812791,
+        "p10": 0.5476556254,
+        "p90": 0.5486542910000001,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0782414585,
+        "p10": 0.07809170850000001,
+        "p90": 0.07840847490000001,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.663415334,
+        "p10": 0.663415334,
+        "p90": 0.663415334,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 88,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 170,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 119.00983814662011,
+        "p10": 118.01567572385179,
+        "p90": 119.12327988605608,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 118.06375442739079,
+        "p10": 116.8936137334595,
+        "p90": 119.00699741998405,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.06776,
+        "p10": 0.067224,
+        "p90": 0.06844,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.06776,
+        "p10": 0.067224,
+        "p90": 0.06844,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.008402666666666668,
+        "p10": 0.008394666666666668,
+        "p90": 0.0084736,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.05604399999999998,
+        "p10": 0.0553456,
+        "p90": 0.05662639999999998,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 119.9288668910031,
+        "p10": 119.2425620523173,
+        "p90": 121.04410372105052,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0083382760625,
+        "p10": 0.0082616281125,
+        "p90": 0.0083863364625,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=8"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 51.6708017987311,
+        "p10": 51.34190633152271,
+        "p90": 51.71934526021667,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 51.818023366909955,
+        "p10": 51.696348782614905,
+        "p90": 51.87978262787328,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 51.062557475923406,
+        "p10": 51.00009972137843,
+        "p90": 51.46104114162627,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.15682095799999995,
+        "p10": 0.1553087579999998,
+        "p90": 0.15698345879999973,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.13708674900000029,
+        "p10": 0.13602728179999996,
+        "p90": 0.13725468499999965,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.019247875000000247,
+        "p10": 0.019172274999999808,
+        "p90": 0.019319225000000228,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.3131559159999999,
+        "p10": 0.3131559159999999,
+        "p90": 0.3131559159999999,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 12.720228900519064,
+        "p10": 12.714707339145315,
+        "p90": 12.7258084576324,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 12.764479007817044,
+        "p10": 12.740509064791333,
+        "p90": 12.772130325186794,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 12.710920551432157,
+        "p10": 12.70694216103231,
+        "p90": 12.71560295640127,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 2.517168041,
+        "p10": 2.5163550082,
+        "p90": 2.5173117082000003,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 2.4388477510000004,
+        "p10": 2.4379497502,
+        "p90": 2.4396113845999996,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.07825862550000001,
+        "p10": 0.0781706415,
+        "p90": 0.07847399190000001,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 1.115939417,
+        "p10": 1.115939417,
+        "p90": 1.115939417,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 184,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 182,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 118.92491873463887,
+        "p10": 118.81190804214476,
+        "p90": 119.97736851646685,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 119.1007890427274,
+        "p10": 118.41425306775548,
+        "p90": 119.10788206969339,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.26868000000000003,
+        "p10": 0.268664,
+        "p90": 0.27024,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.26868000000000003,
+        "p10": 0.268664,
+        "p90": 0.27024,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.008408666666666667,
+        "p10": 0.008335066666666668,
+        "p90": 0.008416666666666666,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.05574899999999999,
+        "p10": 0.05552899999999999,
+        "p90": 0.0570562,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 119.50528516605095,
+        "p10": 118.43152141027615,
+        "p90": 119.80123094592793,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00836783075,
+        "p10": 0.0083471724,
+        "p90": 0.00844387035,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=32"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 51.46747332607287,
+        "p10": 51.4063323988255,
+        "p90": 51.49069502483075,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 51.45611428773461,
+        "p10": 51.26459118926444,
+        "p90": 51.717003062357456,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 51.5032510571612,
+        "p10": 51.46557317954509,
+        "p90": 51.712081362773745,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.62124275,
+        "p10": 0.6185765828,
+        "p90": 0.6216134500000001,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.6019037509999992,
+        "p10": 0.5994755182000016,
+        "p90": 0.6023444845999999,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.019327791499999858,
+        "p10": 0.019245341499999836,
+        "p90": 0.019425208299999587,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.30837704200000005,
+        "p10": 0.30837704200000005,
+        "p90": 0.30837704200000005,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 12.68144985273628,
+        "p10": 12.664896074182602,
+        "p90": 12.693574575778594,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 12.688386174535218,
+        "p10": 12.67532986213817,
+        "p90": 12.691929996765822,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 12.68625597415173,
+        "p10": 12.663625046436824,
+        "p90": 12.69706738851568,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 10.089537291,
+        "p10": 10.081322391,
+        "p90": 10.1082897246,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 10.010833792,
+        "p10": 10.002311490399999,
+        "p90": 10.028731962399998,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.078723188,
+        "p10": 0.0787206544,
+        "p90": 0.0787967208,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.48700525,
+        "p10": 0.48700525,
+        "p90": 0.48700525,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 568,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 182,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 120.88974854932302,
+        "p10": 118.06731673904855,
+        "p90": 121.06935059803578,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 119.64070401076768,
+        "p10": 119.17952445872764,
+        "p90": 119.93954215606432,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 1.0698699999999999,
+        "p10": 1.067206,
+        "p90": 1.074014,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 1.0698699999999999,
+        "p10": 1.067206,
+        "p90": 1.074014,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.008272,
+        "p10": 0.008259733333333333,
+        "p90": 0.008470933333333335,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.05617299999999999,
+        "p10": 0.05555699999999998,
+        "p90": 0.06916100000000001,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 120.1895241563779,
+        "p10": 117.45279374145044,
+        "p90": 120.27051685757638,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0083201926875,
+        "p10": 0.008314590637500001,
+        "p90": 0.0085151947875,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=128"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 51.33619623007943,
+        "p10": 51.26541057888389,
+        "p90": 51.42449852625389,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 50.623659918555724,
+        "p10": 50.469903459246716,
+        "p90": 50.91332773197272,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 51.484101840291586,
+        "p10": 51.39681215012278,
+        "p90": 51.53709098249254,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 2.487005000000001,
+        "p10": 2.4840660000000003,
+        "p90": 2.4909048335999993,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 2.4667809180000004,
+        "p10": 2.4642452876000047,
+        "p90": 2.4709721508000135,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.01960308349999984,
+        "p10": 0.019543950300000293,
+        "p90": 0.01974433349999991,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.3074285000000001,
+        "p10": 0.3074285000000001,
+        "p90": 0.3074285000000001,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 12.691383259990825,
+        "p10": 12.654084230457379,
+        "p90": 12.709402709503639,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 12.673238466882697,
+        "p10": 12.669053251885167,
+        "p90": 12.762495308495932,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 12.69467303008447,
+        "p10": 12.654568777904288,
+        "p90": 12.707055810756675,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 17.645990542,
+        "p10": 17.627997742,
+        "p90": 17.701814508400002,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 17.566423291999996,
+        "p10": 17.549309320800003,
+        "p90": 17.6221381,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.07886164600000001,
+        "p10": 0.0782411124,
+        "p90": 0.078951146,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 1.1260408339999999,
+        "p10": 1.1260408339999999,
+        "p90": 1.1260408339999999,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 952,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 182,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 101.61913149515614,
+        "p10": 101.43230889450268,
+        "p90": 101.72390769911263,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 100.81053470087625,
+        "p10": 98.99579074319664,
+        "p90": 100.86283423746646,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 2.22199,
+        "p10": 2.220838,
+        "p90": 2.2629099999999998,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 2.22199,
+        "p10": 2.220838,
+        "p90": 2.2629099999999998,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.009840666666666668,
+        "p10": 0.009830533333333334,
+        "p90": 0.009858800000000001,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.06186299999999999,
+        "p10": 0.0589198,
+        "p90": 0.0663094,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 101.40846855782897,
+        "p10": 99.65821593466653,
+        "p90": 102.00088259907383,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.009861109375,
+        "p10": 0.009803919775,
+        "p90": 0.010035059375,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=224"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories110M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 43.40329688200635,
+        "p10": 43.30751889333921,
+        "p90": 44.35747697054378,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 43.71906715467981,
+        "p10": 43.67901452821643,
+        "p90": 43.738832956160884,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 43.40253704115659,
+        "p10": 43.31156412451586,
+        "p90": 44.42132339456426,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 5.162858875,
+        "p10": 5.0447448414,
+        "p90": 5.1734953414,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 5.137948498000003,
+        "p10": 5.0207833652000025,
+        "p90": 5.148746070000008,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.022944375499999836,
+        "p10": 0.022863825099999957,
+        "p90": 0.023000858300000714,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.31808554199999994,
+        "p10": 0.318085542,
+        "p90": 0.31808554199999994,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 57.357363850968824,
+        "p10": 57.14044537399986,
+        "p90": 57.39207318204415,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 57.63017481375143,
+        "p10": 57.30928840651207,
+        "p90": 57.64797089022176,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 57.30664890160551,
+        "p10": 57.21472325436589,
+        "p90": 57.462103431189675,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.139710416,
+        "p10": 0.1392619168,
+        "p90": 0.1398121168,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.12214987499999999,
+        "p10": 0.12181964140000001,
+        "p90": 0.1223462094,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0173953125,
+        "p10": 0.0173055293,
+        "p90": 0.0173969793,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.233357417,
+        "p10": 0.233357417,
+        "p90": 0.233357417,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 88,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 92,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 523.1949773282176,
+        "p10": 508.95166392925546,
+        "p90": 524.0727598836792,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 332.9171868497711,
+        "p10": 315.320320385889,
+        "p90": 370.7659468756576,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.024030000000000003,
+        "p10": 0.021638,
+        "p90": 0.025390000000000003,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.024030000000000003,
+        "p10": 0.021638,
+        "p90": 0.025390000000000003,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0019113333333333335,
+        "p10": 0.0019081333333333336,
+        "p90": 0.0019652,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.030025999999999997,
+        "p10": 0.029899600000000005,
+        "p90": 0.0300596,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "engine-native",
+      "n": 6,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "decode_tok_s": {
+        "median": 532.0419835808996,
+        "p10": 494.3080791683448,
+        "p90": 547.2571268949689,
+        "n": 6.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "decode_step_median_s": {
+        "median": 0.00187958984375,
+        "p10": 0.001827303375,
+        "p90": 0.0020230937499999997,
+        "n": 6.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 6.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=8"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 79.7727564252196,
+        "p10": 79.47966273091873,
+        "p90": 80.1166674875433,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 80.22178033168734,
+        "p10": 79.87517821700128,
+        "p90": 80.28585044354816,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 80.79521606447157,
+        "p10": 80.17401100976484,
+        "p90": 81.22173256637865,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.09931491699999984,
+        "p10": 0.09879941699999999,
+        "p90": 0.09977391619999998,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.08663879299999966,
+        "p10": 0.08618442659999986,
+        "p90": 0.08731139139999974,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.012169333999999976,
+        "p10": 0.012165999999999988,
+        "p90": 0.012188199999999982,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.11742695800000003,
+        "p10": 0.11742695800000003,
+        "p90": 0.11742695800000003,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 57.5853672837664,
+        "p10": 57.37290701503046,
+        "p90": 57.6220391336986,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 57.55316330476637,
+        "p10": 57.486254482585366,
+        "p90": 57.5839265824471,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 57.812923095019244,
+        "p10": 57.51888561738745,
+        "p90": 57.96670926010091,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.553484083,
+        "p10": 0.5522207494,
+        "p90": 0.5565335502,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.536212292,
+        "p10": 0.5347906592000001,
+        "p90": 0.5389569256,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.017373375,
+        "p10": 0.017371941800000002,
+        "p90": 0.0173767582,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.553963833,
+        "p10": 0.553963833,
+        "p90": 0.553963833,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 184,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 92,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 536.2888809438684,
+        "p10": 530.2397994527851,
+        "p90": 540.1582090892066,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 476.9712326725295,
+        "p10": 462.7353284687863,
+        "p90": 499.2434341035231,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.06709,
+        "p10": 0.06413,
+        "p90": 0.06917,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.06709,
+        "p10": 0.06413,
+        "p90": 0.06917,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0018646666666666666,
+        "p10": 0.0018513333333333333,
+        "p90": 0.001886,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.030444000000000013,
+        "p10": 0.03039440000000001,
+        "p90": 0.030505600000000008,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 536.5571475280644,
+        "p10": 475.33992043123794,
+        "p90": 541.038816594599,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.001863734375,
+        "p10": 0.001848328125,
+        "p90": 0.002111742675,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=32"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 81.68974049030551,
+        "p10": 80.46893804296492,
+        "p90": 82.05258104377342,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 81.30096751301744,
+        "p10": 80.55615585430361,
+        "p90": 81.69674401729677,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 82.24325077792952,
+        "p10": 80.86640252134522,
+        "p90": 82.28791618199696,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.39021895900000003,
+        "p10": 0.3886803245999999,
+        "p90": 0.3956979254,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.3769306260000005,
+        "p10": 0.3767260579999996,
+        "p90": 0.383375759600001,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.01199093749999991,
+        "p10": 0.011874970700000032,
+        "p90": 0.012035787499999917,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.107060834,
+        "p10": 0.107060834,
+        "p90": 0.107060834,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 57.55926327486309,
+        "p10": 55.783050254655635,
+        "p90": 57.807428846916196,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 57.35383733017888,
+        "p10": 56.7286555040033,
+        "p90": 57.369845162079656,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 57.642454318647694,
+        "p10": 55.71493623974884,
+        "p90": 57.93046439008467,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 2.220609291,
+        "p10": 2.2096829918000003,
+        "p90": 2.2977559918,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 2.2032372060000003,
+        "p10": 2.1922970763999996,
+        "p90": 2.2801255732,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.017432312499999998,
+        "p10": 0.0174255793,
+        "p90": 0.017557929299999997,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.241186708,
+        "p10": 0.24118670800000003,
+        "p90": 0.241186708,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 568,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 92,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 527.7973258268825,
+        "p10": 525.1398847457962,
+        "p90": 542.0818369369298,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 518.1766658570156,
+        "p10": 517.7240549151048,
+        "p90": 518.9837553341354,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.24702000000000002,
+        "p10": 0.246636,
+        "p90": 0.247236,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.24702000000000002,
+        "p10": 0.246636,
+        "p90": 0.247236,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0018946666666666667,
+        "p10": 0.0018450666666666666,
+        "p90": 0.0019042666666666667,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.03354,
+        "p10": 0.031277599999999996,
+        "p90": 0.0335984,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 536.2963707819033,
+        "p10": 533.392095828484,
+        "p90": 548.5624977385216,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.001864640625,
+        "p10": 0.001823178125,
+        "p90": 0.001874807275,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=128"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 78.9368338500093,
+        "p10": 73.59790583228667,
+        "p90": 79.12519800559559,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 78.80964571350272,
+        "p10": 62.23724820665877,
+        "p90": 79.53803578607638,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 78.61983574171866,
+        "p10": 75.50317099969281,
+        "p90": 78.98121414200014,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 1.6281902910000001,
+        "p10": 1.6219549582000001,
+        "p90": 1.6948874254,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 1.6153684220000093,
+        "p10": 1.6079857516000016,
+        "p90": 1.6827438500000025,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.012434707999999794,
+        "p10": 0.01226640839999984,
+        "p90": 0.013166424800000166,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.11929233400000006,
+        "p10": 0.11929233400000006,
+        "p90": 0.11929233400000006,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 56.332077597436886,
+        "p10": 56.301358397760694,
+        "p90": 56.36179733710437,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 55.79700333196339,
+        "p10": 55.74540194941061,
+        "p90": 55.89380997946483,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 56.396760944849504,
+        "p10": 56.36038902056284,
+        "p90": 56.42019355859112,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 3.972998584,
+        "p10": 3.9707158504000004,
+        "p90": 3.9749419167999998,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 3.954127795000002,
+        "p10": 3.952485724600001,
+        "p90": 3.956679985400002,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0178209165,
+        "p10": 0.017779466900000002,
+        "p90": 0.017852316899999998,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.564395375,
+        "p10": 0.564395375,
+        "p90": 0.564395375,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 952,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 86,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 538.5996409335727,
+        "p10": 532.7996306309229,
+        "p90": 543.4497756812679,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 527.1208377456171,
+        "p10": 526.6945610796139,
+        "p90": 528.4847464244244,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.42495,
+        "p10": 0.423854,
+        "p90": 0.42529399999999995,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.42495,
+        "p10": 0.423854,
+        "p90": 0.42529399999999995,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0018566666666666666,
+        "p10": 0.0018401333333333335,
+        "p90": 0.0018769333333333335,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.030985,
+        "p10": 0.03098100000000001,
+        "p90": 0.0312002,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 543.5413478527722,
+        "p10": 537.6052002768942,
+        "p90": 549.255219622718,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0018397864375,
+        "p10": 0.0018206968875,
+        "p90": 0.0018601572874999998,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=224"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories15M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 76.29342602054538,
+        "p10": 73.83090730126203,
+        "p90": 78.59590379123753,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 78.70191075302682,
+        "p10": 59.930159832213285,
+        "p90": 78.7492408318663,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 78.50341511857813,
+        "p10": 74.02868190898918,
+        "p90": 79.07530824686562,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 2.8533269170000004,
+        "p10": 2.8333826162,
+        "p90": 3.027817917,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 2.840640750000011,
+        "p10": 2.8201335780000107,
+        "p90": 3.014980480399999,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.012395582999999544,
+        "p10": 0.012381266599999831,
+        "p90": 0.012521733400000467,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.11070966700000007,
+        "p10": 0.11070966700000007,
+        "p90": 0.11070966700000007,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 25.927094993479606,
+        "p10": 25.8734710983767,
+        "p90": 25.95282684970425,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 25.967146071414163,
+        "p10": 25.893294874257027,
+        "p90": 25.97087213921931,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 25.977777280736305,
+        "p10": 25.924607238136673,
+        "p90": 26.041339026779692,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.307366958,
+        "p10": 0.30675932520000004,
+        "p90": 0.3091017252,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.269461083,
+        "p10": 0.268803783,
+        "p90": 0.2700140174,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0385593125,
+        "p10": 0.0385023789,
+        "p90": 0.0386014625,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.331139167,
+        "p10": 0.331139167,
+        "p90": 0.331139167,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 88,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 122,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 256.4979480164159,
+        "p10": 254.58605411285458,
+        "p90": 257.37893014939345,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 217.5686701115039,
+        "p10": 216.955468439645,
+        "p90": 237.9244266103931,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.036770000000000004,
+        "p10": 0.033690000000000005,
+        "p90": 0.036874,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.036770000000000004,
+        "p10": 0.033690000000000005,
+        "p90": 0.036874,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0038986666666666666,
+        "p10": 0.0038853333333333335,
+        "p90": 0.003928,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.04067000000000001,
+        "p10": 0.038678000000000004,
+        "p90": 0.0935716,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 250.08336372627713,
+        "p10": 246.70674757968234,
+        "p90": 258.68170332593075,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.003998666625,
+        "p10": 0.003866850025,
+        "p90": 0.0040535833249999995,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=8"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 8,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 60.31834376794985,
+        "p10": 59.84360418758589,
+        "p90": 60.6995665366842,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 60.483366202955416,
+        "p10": 59.857867270441986,
+        "p90": 60.724603700720586,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 60.85776886499305,
+        "p10": 59.63746007201087,
+        "p90": 62.136515397543754,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.13263379099999995,
+        "p10": 0.12934249179999996,
+        "p90": 0.13452342460000002,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.1150222910000005,
+        "p10": 0.11266729099999996,
+        "p90": 0.1173879926000001,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.016617896000000076,
+        "p10": 0.016577146000000112,
+        "p90": 0.01689999559999995,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.173357584,
+        "p10": 0.173357584,
+        "p90": 0.173357584,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 25.975479236820565,
+        "p10": 25.920257809253158,
+        "p90": 26.018480579942597,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 25.93535984703117,
+        "p10": 25.86260044217319,
+        "p90": 25.946281847604894,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 26.025182236658274,
+        "p10": 25.98323295808698,
+        "p90": 26.08577560131646,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 1.229208542,
+        "p10": 1.2273710748000002,
+        "p90": 1.2317211084,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 1.191154003,
+        "p10": 1.1883887358000003,
+        "p90": 1.1930778678000002,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.038458229,
+        "p10": 0.038423979000000004,
+        "p90": 0.0386331626,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.936812833,
+        "p10": 0.9368128330000001,
+        "p90": 0.936812833,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 184,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 122,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 259.24645696508816,
+        "p10": 258.4608616409515,
+        "p90": 260.94495265804636,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 247.63968425940257,
+        "p10": 246.1183223533396,
+        "p90": 249.1536386609884,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.12922,
+        "p10": 0.12843600000000002,
+        "p90": 0.13002,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.12922,
+        "p10": 0.12843600000000002,
+        "p90": 0.13002,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0038573333333333333,
+        "p10": 0.003832266666666667,
+        "p90": 0.0038690666666666667,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.044905,
+        "p10": 0.04070260000000002,
+        "p90": 0.04709539999999999,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 259.6650875404853,
+        "p10": 251.26494409788603,
+        "p90": 261.67839399490293,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0038511145625,
+        "p10": 0.0038215416625000005,
+        "p90": 0.0039809479124999995,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=32"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 32,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 59.92803427359322,
+        "p10": 59.725579676663465,
+        "p90": 60.02694855978492,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 60.358273432274025,
+        "p10": 59.45043004704994,
+        "p90": 60.94434555347068,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 59.74954325232631,
+        "p10": 59.62788223507991,
+        "p90": 60.45360767359094,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.5363368749999997,
+        "p10": 0.5298445413999999,
+        "p90": 0.5374106749999998,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.5188324179999992,
+        "p10": 0.5128074516000003,
+        "p90": 0.5198915516000004,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.016661499500000065,
+        "p10": 0.016626866699999975,
+        "p90": 0.01717958349999984,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.17494900000000002,
+        "p10": 0.17494900000000005,
+        "p90": 0.17494900000000002,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 25.931320366963874,
+        "p10": 25.85864822812118,
+        "p90": 26.06690478667734,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 26.08250374221575,
+        "p10": 25.98964578741169,
+        "p90": 26.277640785485257,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 25.94044631959511,
+        "p10": 25.844695894647742,
+        "p90": 26.05186245644943,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 4.935398542,
+        "p10": 4.9139181084,
+        "p90": 4.9573385756,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 4.89582941,
+        "p10": 4.874913753200002,
+        "p90": 4.9139844828,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.03811225,
+        "p10": 0.0376177,
+        "p90": 0.03839005039999999,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.500234917,
+        "p10": 0.500234917,
+        "p90": 0.500234917,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 568,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 122,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 240.65458045884807,
+        "p10": 238.2751087712182,
+        "p90": 240.6545804588481,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 238.4900598088353,
+        "p10": 237.89470952301448,
+        "p90": 239.37216590007193,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.53671,
+        "p10": 0.534734,
+        "p90": 0.538054,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.53671,
+        "p10": 0.534734,
+        "p90": 0.538054,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.004155333333333333,
+        "p10": 0.004155333333333333,
+        "p90": 0.004196933333333333,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.040198,
+        "p10": 0.03945240000000001,
+        "p90": 0.04056520000000002,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 241.21239500646323,
+        "p10": 237.42274803721358,
+        "p90": 242.1872622548152,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0041457239375,
+        "p10": 0.0041290530875,
+        "p90": 0.0042121614375000005,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=128"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 128,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 59.81458951553445,
+        "p10": 58.18687700759188,
+        "p90": 60.07548691470542,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 59.89635168439418,
+        "p10": 59.54920836588633,
+        "p90": 60.4500887230229,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 59.94872015744047,
+        "p10": 58.36384441045569,
+        "p90": 60.12330141080254,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 2.1372108329999993,
+        "p10": 2.128493066599999,
+        "p90": 2.2043447994000003,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 2.1184772529999965,
+        "p10": 2.1123302497999927,
+        "p90": 2.176397914600003,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.016356625500000277,
+        "p10": 0.015985641900000402,
+        "p90": 0.016436375099999623,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.18317229200000007,
+        "p10": 0.18317229200000007,
+        "p90": 0.18317229200000007,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 24.730022364035662,
+        "p10": 24.722502433538796,
+        "p90": 24.743876328272414,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 24.676736296807842,
+        "p10": 24.673819016112027,
+        "p90": 24.709032519039628,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 24.740188708838097,
+        "p10": 24.729496136839927,
+        "p90": 24.754595540619814,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 9.054568667,
+        "p10": 9.0496511662,
+        "p90": 9.0589846998,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 9.013674172999993,
+        "p10": 9.008429102600001,
+        "p90": 9.0175719386,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0405641045,
+        "p10": 0.0405579373,
+        "p90": 0.0406458709,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.802049542,
+        "p10": 0.8020495420000001,
+        "p90": 0.802049542,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "tokenizer load is folded into load_s",
+        "each step includes worker.submit plus eager host-sink HostView claim",
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id",
+        "warmup_s includes 0 extra passes until background compiles settled"
+      ],
+      "replay_stats": {
+        "clean_submits": 952,
+        "records": 4,
+        "specialization_demotions": 0,
+        "specialization_promotions": 122,
+        "specialization_warms": 14,
+        "topology_records": 0
+      }
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 273.72262773722633,
+        "p10": 273.6427378787112,
+        "p90": 275.21117996596445,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 273.03754266211604,
+        "p10": 272.6601234602663,
+        "p90": 273.40558428148915,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.8204,
+        "p10": 0.819296,
+        "p90": 0.821536,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.8204,
+        "p10": 0.819296,
+        "p90": 0.821536,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.003653333333333333,
+        "p10": 0.0036336000000000003,
+        "p90": 0.0036544,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.038303000000000004,
+        "p10": 0.03811900000000002,
+        "p90": 0.038807799999999996,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "-ngl all, K/V f32, flash attention off, -b 1 -ub 1 serial prompt forwards",
+        "llama.cpp SPM tokenizer encodes ' I' (306); llama3.cuda patches it to 76, so compatibility text is recorded, not rewritten",
+        "each repetition is a fresh llama-completion process (weights reloaded per repetition)",
+        "load_s is log time from model load start to scheduler reservation (weights + GPU upload + context/KV); excludes process start and CUDA init",
+        "prompt_s is llama.cpp prompt eval over all n_prompt forwards, including the one that yields the first token; ttft_s = prompt_s",
+        "decode_step_s is eval_time/n_eval repeated n_eval times (no per-step clock); n_eval = generated tokens - 1",
+        "tokens.generated is empty: llama-completion does not expose sampled ids",
+        "legacy_compat_tok_s omitted: llama.cpp is not (pos-1)/elapsed",
+        "scaling prompt pads the text prompt with its last word so it encodes to context_len ids",
+        "--ignore-eos so exactly decode_steps tokens are sampled"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "llama.cpp-bench",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "engine-native",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 275.0036734475067,
+        "p10": 274.97437188021047,
+        "p90": 275.5872276443048,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.0036363150625,
+        "p10": 0.0036286192625000005,
+        "p90": 0.0036367025625,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "native llama.cpp Release Metal build (Ninja); refs/ is unmodified",
+        "F32 GGUF via llama-convert-llama2c-to-ggml; GGUF n_ctx_train is 128 and llama.cpp pads the runtime context to 256 cells",
+        "full GPU offload; token_embd stays in a CPU_Mapped buffer (llama.cpp input-layer default, get_rows only)",
+        "llama-bench random tokens; not the compatibility headline",
+        "llama-bench at this commit rejects -ctk/-ctv f32 (accepts f16/bf16/q*), so K/V are f16",
+        "-ngl 99, flash attention off, llama-bench default batch sizes; depth prefill is untimed",
+        "one record per llama-bench sample (samples_ns); decode_step_s is sample_ns/n_gen repeated",
+        "llama-bench test n_prompt=0 n_gen=16 n_depth=224"
+      ],
+      "replay_stats": null
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "checkpoint": "stories42M.bin",
+      "tier": "scaling",
+      "context_len": 224,
+      "sampling": "greedy",
+      "n": 3,
+      "match_expected": true,
+      "legacy_compat_tok_s": {
+        "median": 59.99497353036893,
+        "p10": 59.96655462420457,
+        "p90": 60.02751062436184,
+        "n": 3.0
+      },
+      "decode_tok_s": {
+        "median": 59.98478793276107,
+        "p10": 59.55422940643599,
+        "p90": 60.01314750540789,
+        "n": 3.0
+      },
+      "prompt_tok_s": {
+        "median": 60.05140185105994,
+        "p10": 60.022446980488965,
+        "p90": 60.119258553475454,
+        "n": 3.0
+      },
+      "ttft_s": {
+        "median": 3.7323221249999996,
+        "p10": 3.7278854914000017,
+        "p90": 3.733100858599999,
+        "n": 3.0
+      },
+      "prompt_s": {
+        "median": 3.7134853329999977,
+        "p10": 3.7092950985999926,
+        "p90": 3.7152769369999925,
+        "n": 3.0
+      },
+      "decode_step_median_s": {
+        "median": 0.01653575000000007,
+        "p10": 0.016503516799999753,
+        "p90": 0.016792183199999932,
+        "n": 3.0
+      },
+      "load_s": {
+        "median": 0.17308545800000008,
+        "p10": 0.17308545800000008,
+        "p90": 0.17308545800000008,
+        "n": 3.0
+      },
+      "engine_native_notes": [
+        "scaling pads/trims prompt tokens to context_len; filler is last non-BOS id"
+      ],
+      "replay_stats": null
+    }
+  ],
+  "headline": [
+    {
+      "engine": "goldy",
+      "execution": "native",
+      "legacy_compat_tok_s": {
+        "median": 56.300062499403126,
+        "p10": 56.23093075564993,
+        "p90": 56.323433544058176,
+        "n": 3.0
+      },
+      "match_expected": true
+    },
+    {
+      "engine": "llama.cpp",
+      "execution": "native",
+      "legacy_compat_tok_s": {
+        "median": 0.0,
+        "p10": 0.0,
+        "p90": 0.0,
+        "n": 3.0
+      },
+      "match_expected": false
+    },
+    {
+      "engine": "pytorch-eager",
+      "execution": "native",
+      "legacy_compat_tok_s": {
+        "median": 79.61260730852727,
+        "p10": 78.96701212130054,
+        "p90": 79.82787943719558,
+        "n": 3.0
+      },
+      "match_expected": true
+    }
+  ],
+  "n_rows": 156
+}

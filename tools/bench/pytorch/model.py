@@ -26,16 +26,23 @@ def _torch():
 
 
 def configure_precision(device: str) -> list[str]:
-    """Strict FP32: no TF32 anywhere. Fails loudly if CUDA was asked for but is missing."""
+    """Strict FP32: no TF32 anywhere. Fails loudly if CUDA/MPS was asked for but is missing."""
     torch, _ = _torch()
     if device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError(
             f"--device {device} requested but torch {torch.__version__} has no usable CUDA "
             f"(torch.version.cuda={torch.version.cuda}); use the CUDA venv or --device cpu"
         )
+    if device.startswith("mps"):
+        mps = getattr(torch.backends, "mps", None)
+        if mps is None or not mps.is_available():
+            raise RuntimeError(
+                f"--device {device} requested but torch {torch.__version__} has no usable MPS"
+            )
     torch.set_default_dtype(torch.float32)
-    torch.backends.cuda.matmul.allow_tf32 = False
-    torch.backends.cudnn.allow_tf32 = False
+    if torch.cuda.is_available():
+        torch.backends.cuda.matmul.allow_tf32 = False
+        torch.backends.cudnn.allow_tf32 = False
     torch.set_float32_matmul_precision("highest")
     return []
 
@@ -66,6 +73,10 @@ class Decoder:
         torch, _ = _torch()
         if str(device).startswith("cuda") and not torch.cuda.is_available():
             raise RuntimeError(f"device {device} requested but CUDA is unavailable")
+        if str(device).startswith("mps"):
+            mps = getattr(torch.backends, "mps", None)
+            if mps is None or not mps.is_available():
+                raise RuntimeError(f"device {device} requested but MPS is unavailable")
         self.device = torch.device(device)
         self.config: Config = checkpoint.config
         self._load_weights(checkpoint)
@@ -213,6 +224,8 @@ class Decoder:
         torch, _ = _torch()
         if self.device.type == "cuda":
             torch.cuda.synchronize(self.device)
+        elif self.device.type == "mps":
+            torch.mps.synchronize()
 
     def forward_device(self, token: int, pos: int):
         """Forward only; returns the device-resident logits (no DtoH, no sync)."""
@@ -228,8 +241,12 @@ class Decoder:
         """
         torch, _ = _torch()
         logits = self.forward_device(token, pos)
-        if self.device.type != "cuda":
+        if self.device.type == "cpu":
             return logits
+        if self.device.type == "mps":
+            host = logits.detach().to("cpu")
+            torch.mps.synchronize()
+            return host
         host = torch.empty(logits.shape, dtype=logits.dtype, pin_memory=True)
         host.copy_(logits, non_blocking=True)
         torch.cuda.current_stream(self.device).synchronize()

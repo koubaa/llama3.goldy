@@ -204,7 +204,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument(
         "--device",
         default="cuda",
-        help="cuda[:N] (fails if CUDA is unavailable) or cpu",
+        help="cuda[:N] (fails if CUDA is unavailable), mps, or cpu",
     )
     p.add_argument("--compile", action="store_true")
     p.add_argument(
@@ -245,16 +245,24 @@ def main(argv: list[str] | None = None) -> int:
         "torch": torch.__version__,
         "torch_cuda": torch.version.cuda,
         "python": sys.version.split()[0],
-        "tf32_matmul": torch.backends.cuda.matmul.allow_tf32,
-        "tf32_cudnn": torch.backends.cudnn.allow_tf32,
+        "tf32_matmul": bool(torch.cuda.is_available() and torch.backends.cuda.matmul.allow_tf32),
+        "tf32_cudnn": bool(torch.cuda.is_available() and torch.backends.cudnn.allow_tf32),
         "float32_matmul_precision": torch.get_float32_matmul_precision(),
-        "logits_dtoh": "pinned non_blocking copy + stream sync" if decoder.device.type == "cuda" else "none (cpu)",
+        "logits_dtoh": (
+            "pinned non_blocking copy + stream sync"
+            if decoder.device.type == "cuda"
+            else "mps copy + synchronize"
+            if decoder.device.type == "mps"
+            else "none (cpu)"
+        ),
         "cpu_affinity_mask": process_affinity_mask(),
     }
     if decoder.device.type == "cuda":
         build["device_name"] = torch.cuda.get_device_name(decoder.device)
         cap = torch.cuda.get_device_capability(decoder.device)
         build["device_capability"] = f"sm_{cap[0]}{cap[1]}"
+    elif decoder.device.type == "mps":
+        build["device_name"] = "mps"
 
     prompt_tokens = encode_prompt(tokenizer, args.prompt, patch=not args.no_dream_patch)
     if args.mode == "compatibility":

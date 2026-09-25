@@ -242,6 +242,23 @@ fn emit_result(
         out.pos,
         out.compat_elapsed_s,
     );
+    let fusion = model.fusion_report();
+    if !fusion.regions.is_empty() || !fusion.rejected.is_empty() {
+        let fused: usize = fusion.regions.iter().map(|r| r.nodes.len()).sum();
+        eprintln!(
+            "fusion: {} regions of {fused} nodes, {} nodes executed",
+            fusion.regions.len(),
+            model.executed_node_count()
+        );
+        for r in &fusion.regions {
+            let labels: Vec<String> = r.labels.iter().map(ToString::to_string).collect();
+            eprintln!("  {:?} {:?} {:?} {}", r.status, r.schedule, r.cost, labels.join(" "));
+        }
+        for r in &fusion.rejected {
+            let labels: Vec<String> = r.labels.iter().map(ToString::to_string).collect();
+            eprintln!("  rejected {}: {}", labels.join(" "), r.reason);
+        }
+    }
     let stats = model.replay_stats();
     let mut replay = serde_json::Map::new();
     replay.insert("records".into(), json!(stats.records));

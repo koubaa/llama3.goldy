@@ -11,8 +11,8 @@ use ammon::AutoregressiveModel;
 use ammon::{CausalAttentionBlock, Embedding, KvCache, Linear, RmsNorm, SwiGluBlock};
 use anyhow::{Context, Result};
 use goldy::{
-    DepositTransaction, HostSink, HostView, MemoryExchange, ReplayStats, Runtime, Scheme, Tensor,
-    TensorDType, TensorShape,
+    DepositTransaction, FusionReport, HostSink, HostView, MemoryExchange, ReplayStats, Runtime,
+    Scheme, Tensor, TensorDType, TensorShape,
 };
 
 struct ModelTensors {
@@ -148,6 +148,16 @@ impl Model {
 
     pub fn replay_stats(&self) -> ReplayStats {
         self.worker.replay_stats()
+    }
+
+    /// What automatic fusion (`GOLDY_FUSION=1`) runs as one dispatch.
+    pub fn fusion_report(&self) -> FusionReport {
+        self.worker.fusion_report()
+    }
+
+    /// Dispatches and other nodes the worker submits per step, after fusion.
+    pub fn executed_node_count(&self) -> usize {
+        self.worker.executed_node_count()
     }
 }
 

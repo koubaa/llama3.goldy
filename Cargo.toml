@@ -30,3 +30,7 @@ path = "src/bin/llama3-goldy-bench.rs"
 [lib]
 name = "llama3_goldy"
 path = "src/lib.rs"
+
+[[bin]]
+name = "gemv-probe"
+path = "src/bin/gemv-probe.rs"
